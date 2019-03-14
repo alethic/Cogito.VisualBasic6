@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net47</TargetFramework>
+    <EnableComImport>true</EnableComImport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cogito.VisualBasic6.Sample\Cogito.VisualBasic6.Sample.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28711.60
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cogito.VisualBasic6.Sample", "Cogito.VisualBasic6.Sample\Cogito.VisualBasic6.Sample.csproj", "{83525EED-0882-422E-B0B2-63DCE0CBA46E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.VisualBasic6.Sample", "Cogito.VisualBasic6.Sample\Cogito.VisualBasic6.Sample.csproj", "{83525EED-0882-422E-B0B2-63DCE0CBA46E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cogito.VisualBasic6.App", "Cogito.VisualBasic6.App\Cogito.VisualBasic6.App.csproj", "{3D2B287E-11BD-4239-924B-5FD052EE649E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{83525EED-0882-422E-B0B2-63DCE0CBA46E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83525EED-0882-422E-B0B2-63DCE0CBA46E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83525EED-0882-422E-B0B2-63DCE0CBA46E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D2B287E-11BD-4239-924B-5FD052EE649E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D2B287E-11BD-4239-924B-5FD052EE649E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D2B287E-11BD-4239-924B-5FD052EE649E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D2B287E-11BD-4239-924B-5FD052EE649E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
