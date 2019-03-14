@@ -1,0 +1,24 @@
+<Project>
+
+    <PropertyGroup>
+        <VB6ProductDir Condition="'$(VB6ProductDir)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\6.0\Setup\Microsoft Visual Basic@ProductDir)</VB6ProductDir>
+        <VB6ProductDir Condition="'$(VB6ProductDir)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\6.0\Setup\Microsoft Visual Basic@ProductDir)</VB6ProductDir>
+        <VB6ProductDir Condition="'$(VB6ProductDir)' == ''">$(MSBuildProgramFiles32)\Microsoft Visual Studio\VB98</VB6ProductDir>
+        <VB6Path Condition="'$(VB6Path)' == ''">$([MSBuild]::NormalizePath('$(VB6ProductDir)\VB6.EXE'))</VB6Path>
+        <VB6TaskAssembly Condition="'$(VB6TaskAssembly)' == ''">$(MSBuildThisFileDirectory)..\tasks\net45\Cogito.VisualBasic6.MSBuild.dll</VB6TaskAssembly>
+        <VB6TaskAssembly>$([System.IO.Path]::GetFullPath($(VB6TaskAssembly)))</VB6TaskAssembly>
+    </PropertyGroup>
+
+    <UsingTask
+        TaskName="VB6ILRepack"
+        AssemblyFile="$(VB6TaskAssembly)" />
+
+    <UsingTask
+        TaskName="ResolveVB6TypeLibs"
+        AssemblyFile="$(VB6TaskAssembly)" />
+
+    <UsingTask
+        TaskName="WriteVB6ProjectFile"
+        AssemblyFile="$(VB6TaskAssembly)" />
+
+</Project>

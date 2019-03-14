@@ -1,0 +1,24 @@
+image: Visual Studio 2017
+configuration: Release
+platform: Any CPU
+
+install:
+  - choco install gitversion.portable -pre -y
+
+before_build:
+  - ps: gitversion /l console /output buildserver
+  - ps: $env:PackageVersion=$env:GitVersion_NuGetVersion
+  - ps: $env:AssemblyVersion=$env:GitVersion_AssemblySemVer
+  - ps: $env:FileVersion=$env:GitVersion_MajorMinorPatch.0
+  - ps: $env:InformationalVersion=$env:GitVersion_InformationalVersion
+  - ps: $env:PackageOutputPath="$env:APPVEYOR_BUILD_FOLDER\pkg"
+  - nuget restore
+  - dotnet restore
+
+build:
+  verbosity: minimal
+  project: Cogito.COM.MsBuild.sln
+
+artifacts:
+  - path: pkg\*.nupkg
+    name: Cogito.COM.MsBuild

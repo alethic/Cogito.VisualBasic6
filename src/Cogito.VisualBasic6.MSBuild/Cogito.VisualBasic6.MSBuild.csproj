@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net45</TargetFramework>
+        <Authors>Jerome Haltom</Authors>
+        <Description>MSBuild extensions for building Visual Basic 6 projects within standard C# projects.</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+        <PackageProjectUrl>https://github.com/wasabii/Cogito.VisualBasic6.MSBuild</PackageProjectUrl>
+        <DevelopmentDependency>true</DevelopmentDependency>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="Microsoft.Build.Framework" />
+        <Reference Include="Microsoft.Build.Utilities.v4.0" />
+        <Reference Include="$(PkgILRepack)\tools\ILRepack.exe" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="build\*.targets;build\*.props">
+            <Pack>true</Pack>
+            <PackagePath>build</PackagePath>
+        </None>
+        <None Include="$(PkgILRepack)\tools\ILRepack.exe">
+            <Pack>true</Pack>
+            <PackagePath>tasks\net45</PackagePath>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Cogito.COM.MsBuild" Version="0.1.0-alpha0009" />
+        <PackageReference Include="ILRepack" Version="2.0.16">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>
