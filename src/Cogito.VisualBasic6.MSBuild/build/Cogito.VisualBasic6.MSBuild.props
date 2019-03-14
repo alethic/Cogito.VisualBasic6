@@ -22,8 +22,9 @@
         AssemblyFile="$(VB6TaskAssembly)" />
 
     <ItemGroup>
-        <VB6Class Include="**\*.cls" />
         <VB6Module Include="**\*.bas" />
+        <VB6Class Include="**\*.cls" />
+        <VB6Form Include="**\*.frm" />
     </ItemGroup>
 
 </Project>
