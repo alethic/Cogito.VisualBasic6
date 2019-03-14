@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Cogito.COM.MsBuild" Version="0.1.0-alpha0009" />
+        <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18" />
         <PackageReference Include="ILRepack" Version="2.0.16">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
