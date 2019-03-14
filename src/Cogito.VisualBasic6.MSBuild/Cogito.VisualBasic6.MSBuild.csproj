@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net47</TargetFramework>
     <Authors>Jerome Haltom</Authors>
     <Description>MSBuild extensions for building Visual Basic 6 projects within standard C# projects.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -23,7 +23,7 @@
     </None>
     <None Include="$(PkgILRepack)\tools\ILRepack.exe">
       <Pack>true</Pack>
-      <PackagePath>tasks\net45</PackagePath>
+      <PackagePath>tasks\net47</PackagePath>
     </None>
   </ItemGroup>
 
@@ -35,6 +35,13 @@
     <PackageReference Include="ILRepack" Version="2.0.16">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cogito.VisualBasic6.Make\Cogito.VisualBasic6.Make.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <Private>true</Private>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

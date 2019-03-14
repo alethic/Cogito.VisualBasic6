@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -380,8 +380,7 @@ namespace Cogito.VisualBasic6.MSBuild
                     return value.Trim('"');
 
                 // else try as an int
-                int intValue;
-                if (int.TryParse(value, out intValue))
+                if (int.TryParse(value, out var intValue))
                     return intValue;
 
                 // else just trim and return
@@ -565,8 +564,7 @@ namespace Cogito.VisualBasic6.MSBuild
             }
 
             // convert to int
-            int intValue;
-            if (int.TryParse(value, out intValue))
+            if (int.TryParse(value, out var intValue))
                 return typeof(int);
 
             // default to string
