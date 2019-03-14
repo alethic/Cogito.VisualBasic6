@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18">
+    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.20">
       <PrivateAssets>Runtime, Compile, Native, Analyzers</PrivateAssets>
       <IncludeAssets>Build</IncludeAssets>
     </PackageReference>
