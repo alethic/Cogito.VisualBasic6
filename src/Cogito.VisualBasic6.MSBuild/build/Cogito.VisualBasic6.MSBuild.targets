@@ -1,9 +1,5 @@
 <Project>
 
-    <ItemGroup>
-        <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18" />
-    </ItemGroup>
-
     <PropertyGroup>
         <VB6ProjectFile Condition="'$(VB6ProjectFile)' == ''">$(ProjectName).vbp</VB6ProjectFile>
         <VB6Name Condition="'$(VB6Name)' == ''">VB6.$(ProjectName)</VB6Name>
