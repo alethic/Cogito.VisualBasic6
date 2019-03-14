@@ -12,8 +12,8 @@ before_build:
   - ps: $env:FileVersion=$env:GitVersion_MajorMinorPatch.0
   - ps: $env:InformationalVersion=$env:GitVersion_InformationalVersion
   - ps: $env:PackageOutputPath="$env:APPVEYOR_BUILD_FOLDER\pkg"
-  - nuget restore
-  - dotnet restore
+  - nuget restore src\Cogito.VisualBasic6.sln
+  - dotnet restore src\Cogito.VisualBasic6.sln
 
 build:
   verbosity: minimal
