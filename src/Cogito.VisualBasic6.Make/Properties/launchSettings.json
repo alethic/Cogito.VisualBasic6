@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cogito.VisualBasic6.Make": {
+      "commandName": "Project",
+      "commandLineArgs": "-e \"C:\\Program Files (x86)\\Microsoft Visual Studio\\VB98\\VB6.exe\" -m \"C:\\dev\\FileAndServeXpress\\src\\FileAndServe.Xpress.CourtLink\\obj\\Debug\\net47\\cim33wrc.pr4\\CourtLink.vbp\" -o \"C:\\dev\\FileAndServeXpress\\src\\FileAndServe.Xpress.CourtLink\\obj\\Debug\\net47\\cim33wrc.pr4\" \"C:\\dev\\FileAndServeXpress\\src\\FileAndServe.Xpress.CourtLink\\obj\\Debug\\net47\\cim33wrc.pr4\\CourtLink.dll\""
+    }
+  }
+}

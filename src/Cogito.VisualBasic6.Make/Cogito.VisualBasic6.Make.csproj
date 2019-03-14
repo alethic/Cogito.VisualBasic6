@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net47</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Provides a tool for executing headless VB6 builds.</Description>
+    <Authors>Jerome Haltom</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.4.3" />
+    <PackageReference Include="EasyHook" Version="2.7.6789" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyHook32.dll" />
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyHook32Svc.exe" />
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyLoad32.dll" />
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyHook64.dll" />
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyHook64Svc.exe" />
+    <EasyHookNativeLibs Include="$(PkgEasyHook)\content\net40\EasyLoad64.dll" />
+    <None Include="@(EasyHookNativeLibs)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+</Project>
