@@ -40,6 +40,8 @@ Consult the `Cogito.COM.MSBuild` package for more information on the COM manifes
 
 The NuGet package includes a MSBuild task `VB6C` for compiling VB project data. This invokes a `Compiler` class. The `Compiler` class generates a temporary `.vbp` file, and then spawns a `Cogito.VisualBasic6.VB6C` executable, feeding it paths to the temporary files. This executable uses `EasyHook` to spawn the `VB6.exe` executable, injecting some overrides into it. It silences the annoying VB6 beep sounds. And it WILL but not yet, configure the COM ActCtx. It then relays the exit code back to the main process.
 
-The VB6C executable collections the VB6 error output, and emits it to Standard Error. As a compiler executable should.
+The VB6C executable collects the VB6 error output, and emits it to Standard Error. As a compiler executable should.
 
 The Compiler class traps this, and emits it as MSBuild error log messages. And fails the compile.
+
+The compile destination ends up in a temporary directory, to prevent multiple invocations from stepping on each other. The output is then copied into the specified destination.
