@@ -26,6 +26,12 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         /// <param name="value"></param>
         public abstract void WriteStdErr(string value);
 
+        /// <summary>
+        /// Marks the process as exited.
+        /// </summary>
+        /// <param name="exitCode"></param>
+        public abstract void ExitProcess(uint exitCode);
+
     }
 
 }

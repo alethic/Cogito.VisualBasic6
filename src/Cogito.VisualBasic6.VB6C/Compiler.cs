@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Cogito.VisualBasic6.VB6C.EasyHook;
 using Cogito.VisualBasic6.VB6C.Project;
 
@@ -21,7 +22,7 @@ namespace Cogito.VisualBasic6.VB6C
         /// <param name="project"></param>
         /// <param name="output"></param>
         /// <param name="logger"></param>
-        public void Compile(FileInfo vb6, VB6Project project, DirectoryInfo output, TextWriter logger)
+        public List<string> Compile(FileInfo vb6, VB6Project project, DirectoryInfo output)
         {
             if (vb6 == null)
                 throw new ArgumentNullException(nameof(vb6));
@@ -36,17 +37,22 @@ namespace Cogito.VisualBasic6.VB6C
             {
                 project.Save(source);
 
-                var sti = new ProcessStartInfo(typeof(Executor).Assembly.Location, $@"-e ""{vb6}"" -v ""{source}"" -o ""{output.FullName}""");
+                var sti = new ProcessStartInfo();
+                sti.FileName = typeof(Executor).Assembly.Location;
+                sti.Arguments = $@"-e ""{vb6}"" -v ""{source}"" -o ""{output.FullName}""";
                 sti.UseShellExecute = false;
                 sti.RedirectStandardOutput = true;
                 sti.RedirectStandardError = true;
+
                 using (var prc = Process.Start(sti))
                 {
-                    prc.OutputDataReceived += (s, a) => logger.WriteLine(a.Data);
-                    prc.ErrorDataReceived += (s, a) => logger.WriteLine(a.Data);
+                    var errors = new List<string>();
+                    prc.ErrorDataReceived += (s, a) => errors.Add(a.Data);
                     prc.BeginErrorReadLine();
                     prc.BeginOutputReadLine();
                     prc.WaitForExit();
+                    if (prc.ExitCode != 0)
+                        return errors.Select(i => i?.Trim()).Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
                 }
             }
             finally
@@ -61,6 +67,8 @@ namespace Cogito.VisualBasic6.VB6C
 
                 }
             }
+
+            return null;
         }
 
     }

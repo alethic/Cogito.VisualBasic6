@@ -293,13 +293,21 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
 
                 using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
                 {
-                    Task.Run(() =>
-                        new Compiler().Compile(
-                            new FileInfo(ToolPath),
-                            src,
-                            new DirectoryInfo(Output),
-                            log))
-                        .Wait();
+                    var errors = Task.Run(() =>
+                            new Compiler().Compile(
+                                new FileInfo(ToolPath),
+                                src,
+                                new DirectoryInfo(Output)))
+                        .GetAwaiter()
+                        .GetResult();
+
+                    if (errors != null)
+                    {
+                        foreach (var error in errors)
+                            Log.LogError(error);
+
+                        return false;
+                    }
 
                     // copy temporary directory to final
                     foreach (var f in Directory.GetFiles(dst))

@@ -13,6 +13,7 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
     public class RemoteEntryPoint : IEntryPoint
     {
 
+        public const string KERNEL32_DLL = "kernel32.dll";
         public const string USER32_DLL = "user32.dll";
         public const string ADVAPI32_DLL = "advapi32.dll";
         public const string OLE32_DLL = "ole32.dll";
@@ -28,6 +29,12 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
 
         [DllImport(OLE32_DLL, CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         static extern int CoInitializeEx([In, Optional] IntPtr pvReserved, [In] uint dwCoInit);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate void DExitProcess(uint uExitCode);
+
+        [DllImport(KERNEL32_DLL, CallingConvention = CallingConvention.StdCall)]
+        static extern int ExitProcess(uint uExitCode);
 
         readonly RemoteExecutor executor;
 
@@ -61,6 +68,12 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
                 this);
             coInitializeEx.ThreadACL.SetExclusiveACL(new[] { 0 });
 
+            var exitProcess = LocalHook.Create(
+                LocalHook.GetProcAddress(KERNEL32_DLL, nameof(ExitProcess)),
+                new DExitProcess(ExitProcessHook),
+                this);
+            exitProcess.ThreadACL.SetExclusiveACL(new[] { 0 });
+
             RemoteHooking.WakeUpProcess();
 
             try
@@ -93,7 +106,7 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         /// </summary>
         void ActivateComCtx()
         {
-            executor.WriteStdErr("Activating new COM ctx...\n");
+            executor.WriteStdOut("Activating new COM ctx...\n");
         }
 
         /// <summary>
@@ -104,6 +117,17 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         bool MessageBeepHook(uint beepType)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Traps the process exit code.
+        /// </summary>
+        /// <param name="exitCode"></param>
+        /// <returns></returns>
+        void ExitProcessHook(uint exitCode)
+        {
+            executor.ExitProcess(exitCode);
+            ExitProcess(exitCode);
         }
 
     }
