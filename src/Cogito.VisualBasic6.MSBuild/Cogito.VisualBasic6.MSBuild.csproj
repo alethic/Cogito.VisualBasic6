@@ -9,6 +9,9 @@
     <PackageProjectUrl>https://github.com/wasabii/Cogito.VisualBasic6</PackageProjectUrl>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageIconUrl>https://cloverluxussc.blob.core.windows.net/public/cogito-nuget-icon.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/wasabii/Cogito.VisualBasic6.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,17 +29,7 @@
 
   <Target Name="CollectRuntimeOutputs" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
-      <Content Include="
-            $(OutputPath)**\*.dll;
-            $(OutputPath)**\*.exe;
-            $(OutputPath)**\*.dll.config;
-            $(OutputPath)**\*.json;
-            "
-            Exclude="
-            $(OutputPath)**\Microsoft.Build.Framework.dll;
-            $(OutputPath)**\Microsoft.Build.Tasks.Core.dll;
-            $(OutputPath)**\Microsoft.Build.Utilities.Core.dll;
-            ">
+      <Content Include="&#xD;&#xA;            $(OutputPath)**\*.dll;&#xD;&#xA;            $(OutputPath)**\*.exe;&#xD;&#xA;            $(OutputPath)**\*.dll.config;&#xD;&#xA;            $(OutputPath)**\*.json;&#xD;&#xA;            " Exclude="&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Framework.dll;&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Tasks.Core.dll;&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Utilities.Core.dll;&#xD;&#xA;            ">
         <Pack>true</Pack>
         <PackagePath>build\</PackagePath>
       </Content>
