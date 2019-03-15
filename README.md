@@ -30,5 +30,7 @@ All `PackageReference` or `ProjectReference` or `COMReference` items within your
 
 The generated VB6 DLL files contain embedded COM assembly manifests in the `RT_MANIFEST;2` resource. This allows for registration-free COM usage. It is also important for building references between projects as these manifests are used to detect depedencies.
 
+Additionally, upon successful build, a COM Interop assembly for the VB6 DLL is generated. This interop assembly is then merged into the main output assembly of your C# project.
+
 Consult the `Cogito.COM.MSBuild` package for more information on the COM manifest infrastructure.
 
