@@ -5,9 +5,10 @@
     <Authors>Jerome Haltom</Authors>
     <Description>MSBuild extensions for building Visual Basic 6 projects within standard C# projects.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <PackageProjectUrl>https://github.com/wasabii/Cogito.VisualBasic6</PackageProjectUrl>
     <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,19 +18,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\*.targets;build\*.props">
+    <None Include="build\**\*">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </None>
-    <None Include="$(PkgILRepack)\tools\ILRepack.exe">
-      <Pack>true</Pack>
-      <PackagePath>tasks\net47</PackagePath>
-    </None>
-    <None Include="$(OutputPath)*">
-      <Pack>true</Pack>
-      <PackagePath>tasks\net47</PackagePath>
-    </None>
   </ItemGroup>
+
+  <Target Name="CollectRuntimeOutputs" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <Content Include="
+            $(OutputPath)**\*.dll;
+            $(OutputPath)**\*.exe;
+            $(OutputPath)**\*.dll.config;
+            $(OutputPath)**\*.json;
+            "
+            Exclude="
+            $(OutputPath)**\Microsoft.Build.Framework.dll;
+            $(OutputPath)**\Microsoft.Build.Tasks.Core.dll;
+            $(OutputPath)**\Microsoft.Build.Utilities.Core.dll;
+            ">
+        <Pack>true</Pack>
+        <PackagePath>build\</PackagePath>
+      </Content>
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.20">
