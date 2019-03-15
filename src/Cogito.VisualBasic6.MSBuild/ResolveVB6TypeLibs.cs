@@ -100,8 +100,7 @@ namespace Cogito.VisualBasic6.MSBuild
                 return false;
 
             // try from cache
-            Tuple<bool, TypeLibInfo> cached;
-            if (typeLibCache.TryGetValue(path, out cached))
+            if (typeLibCache.TryGetValue(path, out var cached))
             {
                 info = cached.Item2;
                 return cached.Item1;
@@ -155,9 +154,8 @@ namespace Cogito.VisualBasic6.MSBuild
                         // marshal pointer into struct
                         var ta = (System.Runtime.InteropServices.ComTypes.TYPELIBATTR)Marshal.PtrToStructure(typeLibPtr, typeof(System.Runtime.InteropServices.ComTypes.TYPELIBATTR));
 
-                        string name, docString, helpFile;
-                        int helpContext;
-                        typeLib.GetDocumentation(-1, out name, out docString, out helpContext, out helpFile);
+                        // obtain information from typelib
+                        typeLib.GetDocumentation(-1, out var name, out var docString, out var helpContext, out var helpFile);
 
                         // generate information
                         info = new TypeLibInfo()
@@ -212,15 +210,14 @@ namespace Cogito.VisualBasic6.MSBuild
         }
 
         /// <summary>
-        /// Attempts to parse the given <see cref="Int32"/>.
+        /// Attempts to parse the given <see cref="int"/>.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
         int? ParseInt(string value)
         {
-            int i;
             if (value != null)
-                if (int.TryParse(value, out i))
+                if (int.TryParse(value, out var i))
                     return i;
 
             return null;
@@ -283,20 +280,20 @@ namespace Cogito.VisualBasic6.MSBuild
             if (info == null)
                 return null;
 
-            Log.LogMessage(MessageImportance.High, "ResolveTypeLib: {0} -> {1}", item.ItemSpec, info != null ? info.TypeLibPath : null);
+            Log.LogMessage(MessageImportance.High, "ResolveTypeLib: {0} -> {1}", item.ItemSpec, info?.TypeLibPath);
 
             // generate new task item for resulting type lib information
             return new TaskItem(item.ItemSpec ?? Path.GetFileName(info.TypeLibPath), new Dictionary<string, string>()
-        {
-            { "Name", info.Name },
-            { "Description", info.Description },
-            { "Guid", info.Guid.ToString() },
-            { "VersionMajor", info.MajorVersion.ToString() },
-            { "VersionMinor", info.MinorVersion.ToString() },
-            { "Lcid", info.Lcid.ToString() },
-            { "TypeLibPath", info.TypeLibPath },
-            { "TypeLibFilePath", info.TypeLibFilePath }
-        });
+            {
+                ["Name"] = info.Name,
+                ["Description"] = info.Description,
+                ["Guid"] = info.Guid.ToString(),
+                ["VersionMajor"] = info.MajorVersion.ToString(),
+                ["VersionMinor"] = info.MinorVersion.ToString(),
+                ["Lcid"] = info.Lcid.ToString(),
+                ["TypeLibPath"] = info.TypeLibPath,
+                ["TypeLibFilePath"] = info.TypeLibFilePath
+            });
         }
 
         /// <summary>
