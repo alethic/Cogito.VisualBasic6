@@ -25,6 +25,10 @@
         TaskName="VB6C"
         AssemblyFile="$(VB6TaskAssembly)" />
 
+    <UsingTask
+        TaskName="GetFileVersionInfo"
+        AssemblyFile="$(VB6TaskAssembly)" />
+
     <ItemGroup>
         <VB6Module Include="**\*.bas" />
         <VB6Class Include="**\*.cls" />

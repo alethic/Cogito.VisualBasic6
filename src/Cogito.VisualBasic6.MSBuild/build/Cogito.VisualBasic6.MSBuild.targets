@@ -483,26 +483,4 @@
         </Task>
     </UsingTask>
 
-    <UsingTask
-        TaskName="GetFileVersionInfo"
-        TaskFactory="CodeTaskFactory"
-        AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-        <ParameterGroup>
-            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
-        </ParameterGroup>
-        <Task>
-            <Using Namespace="System" />
-            <Using Namespace="System.Diagnostics" />
-            <Code Type="Fragment" Language="cs">
-                <![CDATA[
-                    foreach (var f in Files)
-                    {
-                        var v = FileVersionInfo.GetVersionInfo(f.ItemSpec);
-                        f.SetMetadata("ProductVersion", v.ProductVersion);
-                    }
-                ]]>
-            </Code>
-        </Task>
-    </UsingTask>
-
 </Project>
