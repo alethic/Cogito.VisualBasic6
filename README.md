@@ -2,6 +2,14 @@
 
 MSBuild development time support for building Visual Basic 6 projects. This package introduces additional MSBuild targets and properties for handling Visual Basic 6 project builds.
 
+## Dependencies
+
+This package requires VB6 to be installed on your machine. The path to VB6 is discovered by using the `HKLM\SOFTWARE\Microsoft\VisualStudio\6.0` registry keys. The MSBuild property `VB6ProductDir` can be set if this detection logic is not sufficient.
+
+The package also requires a Windows SDK containing the `mt.exe` utility, and the Microsft Visual C++ build components containing the appropriate build tasks. These are usually found by installing C++ related portions of Visual Studio 2017.
+
+## Usage
+
 Install this package within a standard 2017 .csproj project. Create a .vbp file as content within your .NET project. Make sure it is NOT named the same as your .NET project. Usually VB6 project names do not contain periods or namespaces. Two outputs are generated from the build: the original .Net DLL, and a new VB6 DLL or EXE.
 
 Some MSBuild properties are required:
@@ -23,3 +31,4 @@ All `PackageReference` or `ProjectReference` or `COMReference` items within your
 The generated VB6 DLL files contain embedded COM assembly manifests in the `RT_MANIFEST;2` resource. This allows for registration-free COM usage. It is also important for building references between projects as these manifests are used to detect depedencies.
 
 Consult the `Cogito.COM.MSBuild` package for more information on the COM manifest infrastructure.
+
