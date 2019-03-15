@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net47</TargetFramework>
     <OutputType>Exe</OutputType>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Provides a tool for executing headless VB6 builds.</Description>
     <Authors>Jerome Haltom</Authors>
   </PropertyGroup>
