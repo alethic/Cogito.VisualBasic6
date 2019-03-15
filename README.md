@@ -28,6 +28,8 @@ Files with `.bas`, `.cls` and `.frm` extensions are automatically added to these
 
 All `PackageReference` or `ProjectReference` or `COMReference` items within your `.csproj` are scanned to build the set of references passed to VB6. That means you can add a project reference to another VB6 project, and it's output will be included as a reference. You can use the standard Visual Studio COM references for traditional COM components. Any dependent .NET components with COM manifests are also available as references.
 
+The original `.vbp` file is not actually used for build. Instead, it is parsed and augmented with the metadata from the C# project. VB6.exe is then used to silently execute the generated temporary file.
+
 The generated VB6 DLL files contain embedded COM assembly manifests in the `RT_MANIFEST;2` resource. This allows for registration-free COM usage. It is also important for building references between projects as these manifests are used to detect depedencies.
 
 Additionally, upon successful build, a COM Interop assembly for the VB6 DLL is generated. This interop assembly is then merged into the main output assembly of your C# project.
