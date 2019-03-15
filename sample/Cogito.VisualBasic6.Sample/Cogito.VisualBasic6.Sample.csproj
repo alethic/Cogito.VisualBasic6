@@ -2,10 +2,11 @@
 
     <PropertyGroup>
         <TargetFramework>net47</TargetFramework>
-        <VB6ProjectFile>VB6Sample.vbp</VB6ProjectFile>
         <VB6Name>VB6Sample</VB6Name>
+        <VB6Type>OleDll</VB6Type>
         <RestoreSources>$(SolutionDir)..\src\Cogito.VisualBasic6.MSBuild\bin\Debug</RestoreSources>
         <EnableComExport>true</EnableComExport>
+        <VB6Debug>true</VB6Debug>
     </PropertyGroup>
 
     <ItemGroup>

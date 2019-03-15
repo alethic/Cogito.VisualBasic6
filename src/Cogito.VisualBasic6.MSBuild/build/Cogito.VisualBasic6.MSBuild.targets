@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <VB6Name Condition="'$(VB6Name)' == ''">VB6.$(ProjectName)</VB6Name>
+        <VB6Type Condition="'$(VB6Type)' == ''">OleDll</VB6Type>
         <VB6ExeName Condition="'$(VB6ExeName)' == ''">$(VB6Name).dll</VB6ExeName>
         <VB6PdbName Condition="'$(VB6PdbName)' == ''">$(VB6Name).pdb</VB6PdbName>
         <VB6Version Condition="'$(VB6Version)' == '' and '$(AssemblyVersion)' != ''">$(AssemblyVersion)</VB6Version>
@@ -12,7 +13,6 @@
     <PropertyGroup>
         <VB6IntermediateOutputPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)'))</VB6IntermediateOutputPath>
         <VB6TargetName>$([System.IO.Path]::GetFileNameWithoutExtension('$(VB6ExeName)'))</VB6TargetName>
-        <VB6ProjectFileSource>$(VB6ProjectFile)</VB6ProjectFileSource>
         <VB6IntermediateTargetPath>$(VB6IntermediateOutputPath)$(VB6ExeName)</VB6IntermediateTargetPath>
         <VB6IntermediateSymbolPath>$(VB6IntermediateOutputPath)$(VB6PdbName)</VB6IntermediateSymbolPath>
     </PropertyGroup>
@@ -50,11 +50,14 @@
     <Target
         Name="SetVB6Properties">
         <Error
-            Condition="'$(VB6ProjectFile)' == ''"
-            Text="Required property VB6ProjectFile not found."/>
-        <Error
             Condition="'$(VB6Name)' == ''"
             Text="Required property VB6Name not found."/>
+        <Error
+            Condition="'$(VB6Type)' == ''"
+            Text="Required property VB6Type not found."/>
+        <Error
+            Condition="'$(VB6Type)' != 'OleDll'"
+            Text="Unsupporrted VB6Type '$(VB6Type)' found."/>
         <Error
             Condition="'$(VB6ExeName)' == ''"
             Text="Required property VB6ExeName not found."/>
@@ -161,7 +164,7 @@
     <Target
         Name="BuildVB6Project"
         Inputs="
-            $(VB6ProjectFileSource);
+            $(VB6ProjectFile);
             @(VB6Module);
             @(VB6Class);
             @(VB6Form);
@@ -194,11 +197,8 @@
             Condition="!Exists('$(VB6OutputPath)')" />
 
         <Message
-            Text="Building $(VB6ProjectFileSource)." />
-
-        <Error
-            Text="Missing Visual Basic 6 project source file: $(VB6ProjectFileSource)"
-            Condition="!Exists('$(VB6ProjectFileSource)')"/>
+            Text="Building Visual Basic 6 project..."
+            Importance="high" />
 
         <ItemGroup>
             <VB6AdditionalProperties Include="Name" Condition="'$(VB6Name)' != ''">
@@ -258,9 +258,20 @@
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).lib" />
         </ItemGroup>
 
+        <ConvertToAbsolutePath Paths="$(VB6ProjectFile)" Condition="'$(VB6ProjectFile)' != ''">
+            <Output TaskParameter="AbsolutePaths" PropertyName="VB6ProjectFilePath" />
+        </ConvertToAbsolutePath>
+
+        <PropertyGroup>
+            <_VB6PreserveTemporary Condition="'$(VB6Debug)' == 'true'">true</_VB6PreserveTemporary>
+        </PropertyGroup>
+
         <VB6C
             ToolPath="$(VB6Path)"
-            Source="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileSource)'))"
+            PreserveTemporary="$(_VB6PreserveTemporary)"
+            Type="$(VB6Type)"
+            Startup="$(VB6Startup)"
+            Source="$(VB6ProjectFilePath)"
             References="@(TypeLibItems)"
             Modules="@(VB6Module)"
             Classes="@(VB6Class)"
