@@ -304,7 +304,7 @@ namespace Cogito.VisualBasic6.MSBuild
         {
             var hs = new HashSet<string>();
             foreach (var i in items)
-                if (hs.Add((string)i.GetMetadata("Guid")))
+                if (hs.Add(i.GetMetadata("Guid")))
                     yield return i;
         }
 
@@ -314,7 +314,7 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns></returns>
         public override bool Execute()
         {
-            TypeLibItems = DistinctTypeLib(COMReference.Select(i => ResolveTypeLibItem(i)).Where(i => i != null)).OrderBy(i => (string)i.GetMetadata("TypeLibFilePath")).ToArray();
+            TypeLibItems = DistinctTypeLib(COMReference.Select(i => ResolveTypeLibItem(i)).Where(i => i != null)).OrderBy(i => i.GetMetadata("TypeLibFilePath")).ToArray();
             return true;
         }
 
