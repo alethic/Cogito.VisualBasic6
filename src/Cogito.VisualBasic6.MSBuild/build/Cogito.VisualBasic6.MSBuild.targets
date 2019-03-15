@@ -1,7 +1,6 @@
 <Project>
 
     <PropertyGroup>
-        <VB6ProjectFile Condition="'$(VB6ProjectFile)' == ''">$(ProjectName).vbp</VB6ProjectFile>
         <VB6Name Condition="'$(VB6Name)' == ''">VB6.$(ProjectName)</VB6Name>
         <VB6ExeName Condition="'$(VB6ExeName)' == ''">$(VB6Name).dll</VB6ExeName>
         <VB6PdbName Condition="'$(VB6PdbName)' == ''">$(VB6Name).pdb</VB6PdbName>
