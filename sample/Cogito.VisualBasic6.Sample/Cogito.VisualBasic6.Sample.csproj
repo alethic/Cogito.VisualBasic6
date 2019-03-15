@@ -16,8 +16,4 @@
         <PackageReference Include="Cogito.VisualBasic6.MSBuild" Version="1.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="mscorlib" />
-    </ItemGroup>
-
 </Project>

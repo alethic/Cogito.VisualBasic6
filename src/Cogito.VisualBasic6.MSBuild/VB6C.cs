@@ -284,18 +284,44 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
             var src = Source != null ? VB6Project.Load(Source) : new VB6Project();
             Apply(src);
 
-            using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
-                Task.Run(() =>
-                    new Compiler().Compile(
-                        new FileInfo(ToolPath),
-                        src,
-                        new DirectoryInfo(Output),
-                        log))
-                    .Wait();
+            // output to random directory to prevent it from deleting contents of original
+            var dst = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-            // return output
-            Log.LogMessagesFromStream(new StringReader(log.ToString()), MessageImportance.Normal);
-            return true;
+            try
+            {
+                Directory.CreateDirectory(dst);
+
+                using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
+                {
+                    Task.Run(() =>
+                        new Compiler().Compile(
+                            new FileInfo(ToolPath),
+                            src,
+                            new DirectoryInfo(Output),
+                            log))
+                        .Wait();
+
+                    // copy temporary directory to final
+                    foreach (var f in Directory.GetFiles(dst))
+                        File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
+                }
+
+                // return output
+                Log.LogMessagesFromStream(new StringReader(log.ToString()), MessageImportance.Normal);
+                return true;
+            }
+            finally
+            {
+                try
+                {
+                    if (Directory.Exists(dst))
+                        Directory.Delete(dst, true);
+                }
+                catch
+                {
+
+                }
+            }
         }
 
     }

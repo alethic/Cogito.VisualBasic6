@@ -14,7 +14,6 @@
         <VB6IntermediateOutputPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)'))</VB6IntermediateOutputPath>
         <VB6TargetName>$([System.IO.Path]::GetFileNameWithoutExtension('$(VB6ExeName)'))</VB6TargetName>
         <VB6ProjectFileSource>$(VB6ProjectFile)</VB6ProjectFileSource>
-        <VB6ProjectFileTarget>$(VB6IntermediateOutputPath)$(VB6Name).vbp</VB6ProjectFileTarget>
         <VB6IntermediateTargetPath>$(VB6IntermediateOutputPath)$(VB6ExeName)</VB6IntermediateTargetPath>
         <VB6IntermediateSymbolPath>$(VB6IntermediateOutputPath)$(VB6PdbName)</VB6IntermediateSymbolPath>
     </PropertyGroup>
@@ -85,15 +84,15 @@
     <Target
         Name="ResolveVB6TypeLibItems"
         DependsOnTargets="
-              BeforeResolveReferences;
-              AssignProjectConfiguration;
-              ResolveProjectReferences;
-              FindInvalidProjectReferences;
-              ResolveNativeReferences;
-              ResolveAssemblyReferences;
-              GenerateBindingRedirects;
-              ResolveComReferences;
-              ResolveVB6ProjectReferences;">
+            BeforeResolveReferences;
+            AssignProjectConfiguration;
+            ResolveProjectReferences;
+            FindInvalidProjectReferences;
+            ResolveNativeReferences;
+            ResolveAssemblyReferences;
+            GenerateBindingRedirects;
+            ResolveComReferences;
+            ResolveVB6ProjectReferences;">
 
         <ItemGroup>
             <COMOtherReference
@@ -152,8 +151,6 @@
         <Delete Files="$(VB6IntermediateTargetPath).BuildComplete" />
         <Delete Files="$(VB6IntermediateSymbolPath)" />
         <Delete Files="$(IntermediateOutputPath)Interop.$(VB6Name).dll" />
-        <Delete Files="$(VB6ProjectFileTarget)" />
-        <Delete Files="$(VB6LogFile)" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).TLB" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).pdb" />
@@ -192,12 +189,13 @@
         Name="BuildVB6ProjectCore"
         DependsOnTargets="ResolveVB6TypeLibItems">
 
+        <!-- Make sure Visual Basic 6 is installed and available. -->
         <MakeDir
             Directories="$(VB6OutputPath)"
             Condition="!Exists('$(VB6OutputPath)')" />
 
         <Message
-            Text="Building $(VB6ProjectFileTarget) from $(VB6ProjectFileSource)." />
+            Text="Building $(VB6ProjectFileSource)." />
 
         <Error
             Text="Missing Visual Basic 6 project source file: $(VB6ProjectFileSource)"
@@ -255,7 +253,6 @@
 
         <!-- Stage FileWrites early so clean gets to them even after fail. -->
         <ItemGroup>
-            <FileWrites Include="$(VB6LogFile)" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).TLB" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).exp" />
@@ -345,16 +342,28 @@
         Name="MergeVB6InteropAssembly"
         DependsOnTargets="BuildVB6Project">
 
-        <Delete Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
-        <Delete Files="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)$(TargetName).pdb')" />
+        <Delete
+            Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll"
+            Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
+        <Delete
+            Files="$(IntermediateOutputPath)ilrepack\$(TargetName).pdb"
+            Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).pdb')" />
 
-        <VB6ILRepack Union="true" XmlDocumentation="true" CopyAttributes="true" LibraryPath="@(ReferencePath->'%(RootDir)%(Directory)')" InputAssemblies="@(IntermediateAssembly);$(IntermediateOutputPath)Interop.$(VB6Name).dll" OutputFile="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" />
-        <Error Text="ILRepack failed to produce output." Condition="!Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
+        <VB6ILRepack
+            Union="true"
+            XmlDocumentation="true"
+            CopyAttributes="true"
+            DebugInfo="$(DebugSymbols)"
+            LibraryPath="@(ReferencePath->'%(RootDir)%(Directory)')"
+            InputAssemblies="@(IntermediateAssembly);$(IntermediateOutputPath)Interop.$(VB6Name).dll"
+            OutputFile="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" />
+
+        <Error
+            Text="ILRepack failed to produce output."
+            Condition="!Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
 
         <Copy SourceFiles="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" DestinationFiles="@(IntermediateAssembly)" />
         <Copy SourceFiles="$(IntermediateOutputPath)ilrepack\$(TargetName).pdb" DestinationFiles="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).pdb')" />
-        <Delete Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
-        <Delete Files="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)$(TargetName).pdb')" />
         <RemoveDir Directories="$(IntermediateOutputPath)ilrepack" />
 
         <ItemGroup>
@@ -365,7 +374,9 @@
 
     <Target
         Name="BuildVB6Manifest"
-        DependsOnTargets="BuildVB6ProjectCore;ConfigureCOMVariables">
+        DependsOnTargets="BuildVB6ProjectCore;ConfigureCOMVariables"
+        Inputs="$(VB6IntermediateTargetPath);$(VB6IntermediateOutputPath)$(VB6TargetName).tlb;$(VB6IntermediateOutputPath)$(VB6TargetName).VBR"
+        Outputs="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest">
 
         <ItemGroup>
             <_GetFileVersionInfoItems Include="$(VB6IntermediateTargetPath)" />
@@ -382,10 +393,10 @@
             ComponentFileName="$(VB6ExeName)"
             AssemblyIdentity="$(VB6TargetName),type=win32,processorArchitecture=x86,version=%(VB6FileVersionInfo.ProductVersion)"
             TypeLibraryFile="$(VB6IntermediateOutputPath)$(VB6TargetName).tlb"
-            OutputManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest" />
+            OutputManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp" />
 
         <PatchVB6Manifest
-            ManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
+            ManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
             VBRegFile="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
 
         <ResolveAssemblyManifestMetadata
@@ -397,9 +408,16 @@
         </ItemGroup>
 
         <UpdateAssemblyManifest
-            ManifestSource="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
-            ManifestOutput="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
+            ManifestSource="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
+            ManifestOutput="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
             Dependencies="@(_ResolvedAssemblyDependencies)" />
+
+        <Copy
+            SourceFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
+            DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest" />
+
+        <Delete
+            Files="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp" />
     </Target>
 
     <Target
