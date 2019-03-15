@@ -83,10 +83,8 @@ namespace Cogito.VisualBasic6.MSBuild
         [DllImport("oleaut32.dll", PreserveSig = false)]
         public static extern ITypeLib LoadTypeLib([In, MarshalAs(UnmanagedType.LPWStr)] string typelib);
 
-        /// <summary>
-        /// Caches info derived from type library files.
-        /// </summary>
-        readonly Dictionary<(string, DateTime), (bool, TypeLibInfo)> typeLibCache = new Dictionary<(string, DateTime), (bool, TypeLibInfo)>();
+        Dictionary<string, Tuple<bool, TypeLibInfo>> typeLibCache =
+            new Dictionary<string, Tuple<bool, TypeLibInfo>>();
 
         /// <summary>
         /// Attempts to load the specified type lib and return it's parsed metadata.
@@ -101,8 +99,9 @@ namespace Cogito.VisualBasic6.MSBuild
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            // cache contains entry for file?
-            if (typeLibCache.TryGetValue((path, File.GetLastWriteTimeUtc(path)), out var cached))
+            // try from cache
+            Tuple<bool, TypeLibInfo> cached;
+            if (typeLibCache.TryGetValue(path, out cached))
             {
                 info = cached.Item2;
                 return cached.Item1;
@@ -110,7 +109,7 @@ namespace Cogito.VisualBasic6.MSBuild
 
             // attempt to load actual path
             var b = TryLoadTypeLibFromPathInternal(path, out info);
-            typeLibCache[(path, File.GetLastWriteTimeUtc(path))] = (b, info);
+            typeLibCache[path] = Tuple.Create(b, info);
             return b;
         }
 
@@ -143,7 +142,7 @@ namespace Cogito.VisualBasic6.MSBuild
             Log.LogMessage("TryLoadTypeLibFromPath: {0}", path);
 
             ITypeLib typeLib = null;
-            var typeLibPtr = IntPtr.Zero;
+            IntPtr typeLibPtr = IntPtr.Zero;
 
             try
             {
@@ -156,8 +155,9 @@ namespace Cogito.VisualBasic6.MSBuild
                         // marshal pointer into struct
                         var ta = (System.Runtime.InteropServices.ComTypes.TYPELIBATTR)Marshal.PtrToStructure(typeLibPtr, typeof(System.Runtime.InteropServices.ComTypes.TYPELIBATTR));
 
-                        // extracts information from the typelib
-                        typeLib.GetDocumentation(-1, out var name, out var docString, out var helpContext, out var helpFile);
+                        string name, docString, helpFile;
+                        int helpContext;
+                        typeLib.GetDocumentation(-1, out name, out docString, out helpContext, out helpFile);
 
                         // generate information
                         info = new TypeLibInfo()
@@ -212,14 +212,15 @@ namespace Cogito.VisualBasic6.MSBuild
         }
 
         /// <summary>
-        /// Attempts to parse the given <see cref="int"/>.
+        /// Attempts to parse the given <see cref="Int32"/>.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
         int? ParseInt(string value)
         {
+            int i;
             if (value != null)
-                if (int.TryParse(value, out var i))
+                if (int.TryParse(value, out i))
                     return i;
 
             return null;
@@ -243,7 +244,7 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns></returns>
         TypeLibInfo GetTypeLibInfo(ITaskItem item)
         {
-            TypeLibInfo info;
+            TypeLibInfo info = null;
 
             // type lib path specified, load information
             foreach (var typeLibPath in GetTypeLibPathMetadata(item))
@@ -282,20 +283,20 @@ namespace Cogito.VisualBasic6.MSBuild
             if (info == null)
                 return null;
 
-            Log.LogMessage(MessageImportance.High, "ResolveTypeLib: {0} -> {1}", item.ItemSpec, info?.TypeLibPath);
+            Log.LogMessage(MessageImportance.High, "ResolveTypeLib: {0} -> {1}", item.ItemSpec, info != null ? info.TypeLibPath : null);
 
             // generate new task item for resulting type lib information
             return new TaskItem(item.ItemSpec ?? Path.GetFileName(info.TypeLibPath), new Dictionary<string, string>()
-            {
-                ["Name"] = info.Name,
-                ["Description"] = info.Description,
-                ["Guid"] = info.Guid.ToString(),
-                ["VersionMajor"] = info.MajorVersion.ToString(),
-                ["VersionMinor"] = info.MinorVersion.ToString(),
-                ["Lcid"] = info.Lcid.ToString(),
-                ["TypeLibPath"] = info.TypeLibPath,
-                ["TypeLibFilePath"] = info.TypeLibFilePath
-            });
+        {
+            { "Name", info.Name },
+            { "Description", info.Description },
+            { "Guid", info.Guid.ToString() },
+            { "VersionMajor", info.MajorVersion.ToString() },
+            { "VersionMinor", info.MinorVersion.ToString() },
+            { "Lcid", info.Lcid.ToString() },
+            { "TypeLibPath", info.TypeLibPath },
+            { "TypeLibFilePath", info.TypeLibFilePath }
+        });
         }
 
         /// <summary>
@@ -307,7 +308,7 @@ namespace Cogito.VisualBasic6.MSBuild
         {
             var hs = new HashSet<string>();
             foreach (var i in items)
-                if (hs.Add(i.GetMetadata("Guid")))
+                if (hs.Add((string)i.GetMetadata("Guid")))
                     yield return i;
         }
 
@@ -317,10 +318,12 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns></returns>
         public override bool Execute()
         {
-            TypeLibItems = DistinctTypeLib(COMReference.Select(i => ResolveTypeLibItem(i)).Where(i => i != null)).OrderBy(i => i.GetMetadata("TypeLibFilePath")).ToArray();
+            TypeLibItems = DistinctTypeLib(COMReference.Select(i => ResolveTypeLibItem(i)).Where(i => i != null)).OrderBy(i => (string)i.GetMetadata("TypeLibFilePath")).ToArray();
             return true;
         }
 
     }
+
+
 
 }
