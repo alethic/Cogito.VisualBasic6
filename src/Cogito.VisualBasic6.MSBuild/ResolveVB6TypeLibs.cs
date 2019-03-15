@@ -101,10 +101,6 @@ namespace Cogito.VisualBasic6.MSBuild
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            // path doesn't even exist
-            if (File.Exists(path) == false)
-                return false;
-
             // cache contains entry for file?
             if (typeLibCache.TryGetValue((path, File.GetLastWriteTimeUtc(path)), out var cached))
             {
