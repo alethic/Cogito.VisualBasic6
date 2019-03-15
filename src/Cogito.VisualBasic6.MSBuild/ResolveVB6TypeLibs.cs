@@ -83,8 +83,7 @@ namespace Cogito.VisualBasic6.MSBuild
         [DllImport("oleaut32.dll", PreserveSig = false)]
         public static extern ITypeLib LoadTypeLib([In, MarshalAs(UnmanagedType.LPWStr)] string typelib);
 
-        Dictionary<string, Tuple<bool, TypeLibInfo>> typeLibCache =
-            new Dictionary<string, Tuple<bool, TypeLibInfo>>();
+        readonly Dictionary<string, Tuple<bool, TypeLibInfo>> typeLibCache = new Dictionary<string, Tuple<bool, TypeLibInfo>>();
 
         /// <summary>
         /// Attempts to load the specified type lib and return it's parsed metadata.
@@ -141,7 +140,7 @@ namespace Cogito.VisualBasic6.MSBuild
             Log.LogMessage("TryLoadTypeLibFromPath: {0}", path);
 
             ITypeLib typeLib = null;
-            IntPtr typeLibPtr = IntPtr.Zero;
+            var typeLibPtr = IntPtr.Zero;
 
             try
             {
@@ -241,7 +240,7 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns></returns>
         TypeLibInfo GetTypeLibInfo(ITaskItem item)
         {
-            TypeLibInfo info = null;
+            TypeLibInfo info;
 
             // type lib path specified, load information
             foreach (var typeLibPath in GetTypeLibPathMetadata(item))
