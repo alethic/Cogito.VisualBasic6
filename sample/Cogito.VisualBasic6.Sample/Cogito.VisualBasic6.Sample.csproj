@@ -9,19 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <VB6Class Include="**\*.cls" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18">
+        <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.20">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Cogito.VisualBasic6.MSBuild" Version="1.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="mscorlib" />
     </ItemGroup>
 
 </Project>

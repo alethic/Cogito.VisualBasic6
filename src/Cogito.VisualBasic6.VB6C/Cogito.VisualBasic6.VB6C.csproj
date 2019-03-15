@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net47</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>Provides a tool for executing headless VB6 builds.</Description>
+    <Authors>Jerome Haltom</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.4.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cogito.VisualBasic6.VB6C.EasyHook\Cogito.VisualBasic6.VB6C.EasyHook.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,10 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net47</TargetFramework>
     <EnableComImport>true</EnableComImport>
+    <RestoreSources>$(SolutionDir)..\src\Cogito.VisualBasic6.MSBuild\bin\Debug</RestoreSources>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.18">
+    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.20">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
