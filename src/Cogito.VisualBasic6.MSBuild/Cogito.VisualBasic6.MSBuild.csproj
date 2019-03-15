@@ -29,7 +29,7 @@
 
   <Target Name="CollectRuntimeOutputs" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
-      <Content Include="&#xD;&#xA;            $(OutputPath)**\*.dll;&#xD;&#xA;            $(OutputPath)**\*.exe;&#xD;&#xA;            $(OutputPath)**\*.dll.config;&#xD;&#xA;            $(OutputPath)**\*.json;&#xD;&#xA;            " Exclude="&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Framework.dll;&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Tasks.Core.dll;&#xD;&#xA;            $(OutputPath)**\Microsoft.Build.Utilities.Core.dll;&#xD;&#xA;            ">
+      <Content Include="$(OutputPath)**\*" Exclude="$(OutputPath)**\Microsoft.Build.Framework.dll;$(OutputPath)**\Microsoft.Build.Tasks.Core.dll;$(OutputPath)**\Microsoft.Build.Utilities.Core.dll;">
         <Pack>true</Pack>
         <PackagePath>build\</PackagePath>
       </Content>
