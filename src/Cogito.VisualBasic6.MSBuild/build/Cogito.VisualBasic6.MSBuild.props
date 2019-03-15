@@ -21,6 +21,10 @@
         TaskName="WriteVB6ProjectFile"
         AssemblyFile="$(VB6TaskAssembly)" />
 
+    <UsingTask
+        TaskName="VB6C"
+        AssemblyFile="$(VB6TaskAssembly)" />
+
     <ItemGroup>
         <VB6Module Include="**\*.bas" />
         <VB6Class Include="**\*.cls" />

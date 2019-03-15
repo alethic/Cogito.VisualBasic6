@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.VisualBasic6.MSBuild
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.VisualBasic6.VB6C", "Cogito.VisualBasic6.VB6C\Cogito.VisualBasic6.VB6C.csproj", "{BC7CF26F-73DC-43AC-B5C4-BDB4467148D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cogito.VisualBasic6.VB6C.EasyHook", "Cogito.VisualBasic6.VB6C.EasyHook\Cogito.VisualBasic6.VB6C.EasyHook.csproj", "{60496073-320C-46EC-AFDE-7B70030288FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BC7CF26F-73DC-43AC-B5C4-BDB4467148D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC7CF26F-73DC-43AC-B5C4-BDB4467148D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC7CF26F-73DC-43AC-B5C4-BDB4467148D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60496073-320C-46EC-AFDE-7B70030288FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60496073-320C-46EC-AFDE-7B70030288FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60496073-320C-46EC-AFDE-7B70030288FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60496073-320C-46EC-AFDE-7B70030288FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

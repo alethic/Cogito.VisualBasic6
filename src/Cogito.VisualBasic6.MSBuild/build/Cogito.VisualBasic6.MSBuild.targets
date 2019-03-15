@@ -29,7 +29,6 @@
 
     <PropertyGroup>
         <VB6BuildDependsOn>
-            BuildVB6ProjectFile;
             BuildVB6ProjectCore;
             BuildVB6Manifest;
             EmbedVB6Manifest;
@@ -190,7 +189,7 @@
     </Target>
 
     <Target
-        Name="BuildVB6ProjectFile"
+        Name="BuildVB6ProjectCore"
         DependsOnTargets="ResolveVB6TypeLibItems">
 
         <MakeDir
@@ -245,32 +244,6 @@
 
         <Message Text="AdditionalProperties: @(VB6AdditionalProperties->'%(Identity)=%(Value)', ';')" />
 
-        <WriteVB6ProjectFile
-            Source="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileSource)'))"
-            Target="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileTarget)')).tmp"
-            References="@(TypeLibItems)"
-            Modules="@(VB6Module)"
-            Classes="@(VB6Class)"
-            Forms="@(VB6Form)"
-            Properties="
-                ServerSupportFiles=1;
-                @(VB6AdditionalProperties->'%(Identity)=%(Value)', ';');
-                $(VB6Properties);
-            " />
-
-        <Copy
-            SourceFiles="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileTarget)')).tmp"
-            DestinationFiles="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileTarget)'))"
-            Retries="10" />
-
-        <Delete
-            Files="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileTarget)')).tmp" />
-    </Target>
-
-    <Target
-        Name="BuildVB6ProjectCore"
-        DependsOnTargets="BuildVB6ProjectFile">
-
         <PropertyGroup>
             <VB6LogFile>$(VB6IntermediateOutputPath)$(VB6Name).log</VB6LogFile>
         </PropertyGroup>
@@ -279,17 +252,6 @@
         <Error
             Condition="!Exists($(VB6Path))"
             Text="Visual Basic 6 can't be found. Make sure it's installed! Path: $(VB6Path)"/>
-
-        <Message
-            Importance="high"
-            Text="Compiling Visual Basic 6 Project $(VB6ProjectFileTarget)"/>
-
-        <!-- Copy .vbp off to a temporary file to prevent double instances of VB6.exe from failing to launch. -->
-        <PropertyGroup>
-            <_VB6IntermediateOutputPath>$(VB6IntermediateOutputPath)\$([System.IO.Path]::GetRandomFileName())\</_VB6IntermediateOutputPath>
-            <_VB6ProjectFileTarget>$(_VB6IntermediateOutputPath)$(VB6Name).vbp</_VB6ProjectFileTarget>
-            <_VB6LogFile>$(_VB6IntermediateOutputPath)$(VB6Name).log</_VB6LogFile>
-        </PropertyGroup>
 
         <!-- Stage FileWrites early so clean gets to them even after fail. -->
         <ItemGroup>
@@ -300,32 +262,19 @@
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).lib" />
         </ItemGroup>
 
-        <Copy SourceFiles="$(VB6ProjectFileTarget)" DestinationFiles="$(_VB6ProjectFileTarget)" />
-
-        <Exec Command="%22$(VB6Path)%22 /MAKE /OUT %22$(_VB6LogFile)%22 /outdir %22$(_VB6IntermediateOutputPath)%22 %22$(_VB6ProjectFileTarget)%22" ContinueOnError="true">
-            <Output PropertyName="VB6ExitCode" TaskParameter="ExitCode"/>
-        </Exec>
-
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).dll" DestinationFiles="$(VB6IntermediateTargetPath)" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).dll')" />
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).pdb" DestinationFiles="$(VB6IntermediateSymbolPath)" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).pdb')" />
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).TLB" DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).TLB" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).TLB')" />
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).VBR" DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).VBR')" />
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).exp" DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).exp" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).exp')" />
-        <Copy SourceFiles="$(_VB6IntermediateOutputPath)$(VB6TargetName).lib" DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).lib" Condition="Exists('$(_VB6IntermediateOutputPath)$(VB6TargetName).lib')" />
-        <Copy SourceFiles="$(_VB6LogFile)" DestinationFiles="$(VB6LogFile)" Condition="Exists('$(_VB6LogFile)')" />
-        <RemoveDir Directories="$(_VB6IntermediateOutputPath)" />
-
-        <!-- Capture the log output and echo it out. -->
-        <ReadLinesFromFile File="$(VB6LogFile)">
-            <Output ItemName="VB6LogLines" TaskParameter="Lines"/>
-        </ReadLinesFromFile>
-
-        <!-- If there were errors, echo out the lines as errors, otherwise just as a message. -->
-        <Message Importance="high" Text="@(VB6LogLines, '%0a%0d')"  Condition="'$(VB6ExitCode)' == '0'"/>
-        <Error Text="Error building %(VB6ProjectFile.Filename):%0a%0d@(VB6LogLines, '%0a%0d')" Condition="'$(VB6ExitCode)' != '0'" />
-
-        <!-- If the build failed, we need to fail the job with an error. -->
-        <Error Text="Error when building VB6 Project" Condition="'$(VB6ExitCode)' != '0'"/>
+        <VB6C
+            ToolPath="$(VB6Path)"
+            Source="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileSource)'))"
+            References="@(TypeLibItems)"
+            Modules="@(VB6Module)"
+            Classes="@(VB6Class)"
+            Forms="@(VB6Form)"
+            Properties="
+                ServerSupportFiles=1;
+                @(VB6AdditionalProperties->'%(Identity)=%(Value)', ';');
+                $(VB6Properties);
+            "
+            Output="$(VB6IntermediateOutputPath)" />
     </Target>
 
     <Target

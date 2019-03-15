@@ -2,30 +2,32 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Cogito.VisualBasic6.VB6C;
 using Cogito.VisualBasic6.VB6C.Project;
 
 using Microsoft.Build.Framework;
 
-namespace Cogito.VisualBasic6.MSBuild
+namespace Cogito.VisualBasic6.MSBuild.Tasks
 {
 
-    public class WriteVB6ProjectFile :
+    public class VB6C :
         Microsoft.Build.Utilities.Task
     {
 
-
         /// <summary>
-        /// Source VBP file to injest.
+        /// Path to the VB6 executable.
         /// </summary>
         [Required]
+        public string ToolPath { get; set; }
+
+        /// <summary>
+        /// Source VBP project file to use as a base.
+        /// </summary>
         public string Source { get; set; }
-
-        /// <summary>
-        /// Target VBP file to output.
-        /// </summary>
-        [Required]
-        public string Target { get; set; }
 
         /// <summary>
         /// References to include in the VBP.
@@ -53,11 +55,17 @@ namespace Cogito.VisualBasic6.MSBuild
         public string Properties { get; set; }
 
         /// <summary>
+        /// Path to the output directory.
+        /// </summary>
+        [Required]
+        public string Output { get; set; }
+
+        /// <summary>
         /// Applies the transforms.
         /// </summary>
         /// <param name="project"></param>
         /// <returns></returns>
-        VB6Project TransformVbp(VB6Project project)
+        void Apply(VB6Project project)
         {
             if (References != null &&
                 References.Length > 0)
@@ -103,8 +111,6 @@ namespace Cogito.VisualBasic6.MSBuild
                         project.Properties[key] = Convert.ChangeType(val, typ);
                 }
             }
-
-            return project;
         }
 
         /// <summary>
@@ -272,15 +278,25 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns></returns>
         public override bool Execute()
         {
-            Log.LogMessage("Source: {0}", Source);
-            Log.LogMessage("Target: {0}", Target);
+            // setup VB6 project
+            var log = new StringWriter();
+            var src = Source != null ? VB6Project.Load(Source) : new VB6Project();
+            Apply(src);
 
-            TransformVbp(VB6Project.Load(Source)).Save(Target);
+            using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
+                Task.Run(() =>
+                    new Compiler().Compile(
+                        new FileInfo(ToolPath),
+                        src,
+                        new DirectoryInfo(Output),
+                        log))
+                    .Wait();
+
+            // return output
+            Log.LogMessagesFromStream(new StringReader(log.ToString()), MessageImportance.Normal);
             return true;
         }
 
     }
-
-
 
 }

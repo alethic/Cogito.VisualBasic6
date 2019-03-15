@@ -4,10 +4,13 @@ using System.Threading;
 
 using EasyHook;
 
-namespace Cogito.VisualBasic6.Make
+namespace Cogito.VisualBasic6.VB6C.EasyHook
 {
 
-    public class EntryPoint : IEntryPoint
+    /// <summary>
+    /// Instantiated within the VB6.exe process.
+    /// </summary>
+    public class RemoteEntryPoint : IEntryPoint
     {
 
         public const string USER32_DLL = "user32.dll";
@@ -26,16 +29,16 @@ namespace Cogito.VisualBasic6.Make
         [DllImport(OLE32_DLL, CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         static extern int CoInitializeEx([In, Optional] IntPtr pvReserved, [In] uint dwCoInit);
 
-        readonly Executor executor;
+        readonly RemoteExecutor executor;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="channelName"></param>
-        public EntryPoint(RemoteHooking.IContext context, string channelName)
+        public RemoteEntryPoint(RemoteHooking.IContext context, string channelName)
         {
-            executor = RemoteHooking.IpcConnectClient<Executor>(channelName);
+            executor = RemoteHooking.IpcConnectClient<RemoteExecutor>(channelName);
             executor.Ping();
         }
 

@@ -25,6 +25,10 @@
       <Pack>true</Pack>
       <PackagePath>tasks\net47</PackagePath>
     </None>
+    <None Include="$(OutputPath)*">
+      <Pack>true</Pack>
+      <PackagePath>tasks\net47</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +42,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cogito.VisualBasic6.Make\Cogito.VisualBasic6.Make.csproj">
+    <ProjectReference Include="..\Cogito.VisualBasic6.VB6C.EasyHook\Cogito.VisualBasic6.VB6C.EasyHook.csproj">
+      <Private>true</Private>
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Cogito.VisualBasic6.VB6C\Cogito.VisualBasic6.VB6C.csproj">
       <PrivateAssets>all</PrivateAssets>
       <Private>true</Private>
     </ProjectReference>
