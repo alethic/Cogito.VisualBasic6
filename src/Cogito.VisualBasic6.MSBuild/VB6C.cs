@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Cogito.VisualBasic6.VB6C;
 using Cogito.VisualBasic6.VB6C.Project;
 
@@ -131,7 +132,7 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
             }
 
             // convert to int
-            if (int.TryParse(value, out var intValue))
+            if (int.TryParse(value, out _))
                 return typeof(int);
 
             // default to string
