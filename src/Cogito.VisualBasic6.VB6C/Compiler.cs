@@ -69,6 +69,7 @@ namespace Cogito.VisualBasic6.VB6C
                 sti.FileName = typeof(Executor).Assembly.Location;
                 sti.Arguments = $@"-e ""{VB6Exe}"" -v ""{source}"" -o ""{output}""";
                 sti.UseShellExecute = false;
+                sti.CreateNoWindow = true;
                 sti.RedirectStandardOutput = true;
                 sti.RedirectStandardError = true;
 
