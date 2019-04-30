@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cogito.VisualBasic6.VB6C.EasyHook": {
+      "commandName": "Project",
+      "commandLineArgs": "-e \"C:\\Program Files (x86)\\Microsoft Visual Studio\\VB98\\VB6.exe\" -v \"C:\\dev\\Cogito.VisualBasic6\\sample\\Cogito.VisualBasic6.Sample\\VB6Sample.vbp\" -o \"C:\\dev\\Cogito.VisualBasic6\\sample\\Cogito.VisualBasic6.Sample\\obj\\Debug\\net47\""
+    }
+  }
+}

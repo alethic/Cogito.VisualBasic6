@@ -16,6 +16,8 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
     public class Executor : RemoteExecutor, IDisposable
     {
 
+        uint exitCode;
+
         /// <summary>
         /// Temporary path to a log file.
         /// </summary>
@@ -100,9 +102,18 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         }
 
         /// <summary>
+        /// Invoked when the process exits.
+        /// </summary>
+        /// <param name="exitCode"></param>
+        public override void ExitProcess(uint exitCode)
+        {
+            this.exitCode = exitCode;
+        }
+
+        /// <summary>
         /// Executes VB6. The VB6 log output is written to the specified writer.
         /// </summary>
-        public void Execute(TextWriter writer)
+        public int Execute(TextWriter writer)
         {
             Prepare();
 
@@ -128,7 +139,7 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
             // wait for exit of process
             var prc = Process.GetProcessById(pid);
             while (prc != null && !prc.HasExited)
-                prc.WaitForExit(100);
+                prc.WaitForExit(500);
 
             // copy output to writer
             if (writer != null)
@@ -146,6 +157,8 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
             {
 
             }
+
+            return (int)exitCode;
         }
 
         /// <summary>

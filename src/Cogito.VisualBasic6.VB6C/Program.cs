@@ -41,11 +41,10 @@ namespace Cogito.VisualBasic6.VB6C
 
         public static void Main(string[] args)
         {
-            new Compiler().Compile(
-                new FileInfo(@"c:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.EXE"),
-                VB6Project.Load(@"C:\dev\Cogito.VisualBasic6\sample\Cogito.VisualBasic6.Sample\obj\Debug\net47\VB6Sample.vbp"),
-                new DirectoryInfo(@"C:\dev\Cogito.VisualBasic6\sample\Cogito.VisualBasic6.Sample\obj\Debug\net47"),
-                Console.Out);
+            new Compiler(@"c:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.EXE").Compile(
+                VB6Project.Load(@"C:\dev\Cogito.VisualBasic6\sample\Cogito.VisualBasic6.Sample\VB6Sample.vbp"),
+                @"C:\dev\Cogito.VisualBasic6\sample\Cogito.VisualBasic6.Sample\obj\Debug\net47",
+                out var errors);
         }
 
     }

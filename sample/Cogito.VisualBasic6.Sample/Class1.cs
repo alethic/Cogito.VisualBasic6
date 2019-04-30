@@ -12,7 +12,10 @@ namespace Cogito.VisualBasic6.Sample
     public class Class1
     {
 
+        public static void Foo()
+        {
 
+        }
 
     }
 

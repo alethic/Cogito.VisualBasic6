@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cogito.Collections;
 
 namespace Cogito.VisualBasic6.VB6C.Project
 {
@@ -29,6 +30,15 @@ namespace Cogito.VisualBasic6.VB6C.Project
         /// Gets or sets the type of the output.
         /// </summary>
         public VB6Type Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets the startup type of the application.
+        /// </summary>
+        public string Startup
+        {
+            get => (string)Properties.GetOrDefault("Startup");
+            set => Properties["Startup"] = value?.TrimOrNull() ?? "(None)";
+        }
 
         /// <summary>
         /// Project references.

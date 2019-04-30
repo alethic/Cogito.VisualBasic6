@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,26 +16,26 @@ namespace Cogito.VisualBasic6.MSBuild
         Microsoft.Build.Utilities.Task, IDisposable
     {
 
-        string _attributeFile;
-        string _logFile;
-        string _outputFile;
-        string _keyFile;
-        string _keyContainer;
-        ITaskItem[] _assemblies = new ITaskItem[0];
-        ITaskItem[] _libraryPath = new ITaskItem[0];
-        ILRepacking.ILRepack.Kind _targetKind;
-        bool _parallel = true;
-        ILRepacking.ILRepack _ilMerger;
-        RepackOptions _repackOptions;
-        string _excludeFileTmpPath;
+        string attributeFile;
+        string logFile;
+        string outputFile;
+        string keyFile;
+        string keyContainer;
+        ITaskItem[] assemblies = new ITaskItem[0];
+        ITaskItem[] libraryPath = new ITaskItem[0];
+        ILRepack.Kind targetKind;
+        bool parallel = true;
+        ILRepack ilMerger;
+        RepackOptions repackOptions;
+        string excludeFileTmpPath;
 
         /// <summary>
         /// Specifies a keyfile to sign the output assembly.
         /// </summary>
         public virtual string KeyFile
         {
-            get { return _keyFile; }
-            set { _keyFile = BuildPath(ConvertEmptyToNull(value)); }
+            get { return keyFile; }
+            set { keyFile = BuildPath(ConvertEmptyToNull(value)); }
         }
 
         /// <summary>
@@ -43,8 +43,8 @@ namespace Cogito.VisualBasic6.MSBuild
         /// </summary>
         public virtual string KeyContainer
         {
-            get { return _keyContainer; }
-            set { _keyContainer = BuildPath(ConvertEmptyToNull(value)); }
+            get { return keyContainer; }
+            set { keyContainer = BuildPath(ConvertEmptyToNull(value)); }
         }
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace Cogito.VisualBasic6.MSBuild
         /// </summary>
         public virtual string LogFile
         {
-            get { return _logFile; }
-            set { _logFile = BuildPath(ConvertEmptyToNull(value)); }
+            get { return logFile; }
+            set { logFile = BuildPath(ConvertEmptyToNull(value)); }
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Cogito.VisualBasic6.MSBuild
         /// </summary>
         public virtual string AttributeFile
         {
-            get { return _attributeFile; }
-            set { _attributeFile = BuildPath(ConvertEmptyToNull(value)); }
+            get { return attributeFile; }
+            set { attributeFile = BuildPath(ConvertEmptyToNull(value)); }
         }
 
         /// <summary>
@@ -92,20 +92,18 @@ namespace Cogito.VisualBasic6.MSBuild
         {
             get
             {
-                return _targetKind.ToString();
+                return targetKind.ToString();
             }
             set
             {
-                if (Enum.IsDefined(typeof(ILRepacking.ILRepack.Kind), value))
+                if (Enum.IsDefined(typeof(ILRepack.Kind), value))
                 {
-                    _targetKind = (ILRepacking.ILRepack.Kind)Enum.Parse(typeof(ILRepacking.ILRepack.Kind), value);
+                    targetKind = (ILRepack.Kind)Enum.Parse(typeof(ILRepacking.ILRepack.Kind), value);
                 }
                 else
                 {
-                    Log.LogWarning("TargetKind should be [Exe|Dll|" +
-                                   "WinExe|SameAsPrimaryAssembly]; " +
-                                   "set to SameAsPrimaryAssembly");
-                    _targetKind = ILRepacking.ILRepack.Kind.SameAsPrimaryAssembly;
+                    Log.LogWarning("TargetKind should be [Exe|Dll|WinExe|SameAsPrimaryAssembly]; set to SameAsPrimaryAssembly");
+                    targetKind = ILRepack.Kind.SameAsPrimaryAssembly;
                 }
             }
         }
@@ -130,8 +128,8 @@ namespace Cogito.VisualBasic6.MSBuild
         /// </summary>
         public virtual ITaskItem[] LibraryPath
         {
-            get { return _libraryPath; }
-            set { _libraryPath = value; }
+            get { return libraryPath; }
+            set { libraryPath = value; }
         }
 
         /// <summary>
@@ -155,10 +153,10 @@ namespace Cogito.VisualBasic6.MSBuild
         [Required]
         public virtual string OutputFile
         {
-            get { return _outputFile; }
+            get { return outputFile; }
             set
             {
-                _outputFile = ConvertEmptyToNull(value);
+                outputFile = ConvertEmptyToNull(value);
             }
         }
 
@@ -168,8 +166,8 @@ namespace Cogito.VisualBasic6.MSBuild
         [Required]
         public virtual ITaskItem[] InputAssemblies
         {
-            get { return _assemblies; }
-            set { _assemblies = value; }
+            get { return assemblies; }
+            set { assemblies = value; }
         }
 
         /// <summary>
@@ -192,8 +190,8 @@ namespace Cogito.VisualBasic6.MSBuild
         /// </summary>
         public virtual bool Parallel
         {
-            get { return _parallel; }
-            set { _parallel = value; }
+            get { return parallel; }
+            set { parallel = value; }
         }
 
         /// <summary>
@@ -217,37 +215,38 @@ namespace Cogito.VisualBasic6.MSBuild
         /// <returns>Returns true if its successful.</returns>
         public override bool Execute()
         {
-            _repackOptions = new RepackOptions
+            repackOptions = new RepackOptions
             {
-                KeyFile = _keyFile,
-                KeyContainer = _keyContainer,
-                LogFile = _logFile,
-                Log = !string.IsNullOrEmpty(_logFile),
+                KeyFile = keyFile,
+                KeyContainer = keyContainer,
+                LogFile = logFile,
+                Log = !string.IsNullOrEmpty(logFile),
                 LogVerbose = Verbose,
                 UnionMerge = Union,
                 DebugInfo = DebugInfo,
                 CopyAttributes = CopyAttributes,
                 AttributeFile = AttributeFile,
                 AllowMultipleAssemblyLevelAttributes = AllowMultiple,
-                TargetKind = _targetKind,
+                TargetKind = targetKind,
                 TargetPlatformVersion = TargetPlatformVersion,
                 TargetPlatformDirectory = TargetPlatformDirectory,
                 XmlDocumentation = XmlDocumentation,
                 Internalize = Internalize,
-                //RenameInternalized = RenameInternalized,
+                RenameInternalized = RenameInternalized,
                 DelaySign = DelaySign,
                 AllowDuplicateResources = AllowDuplicateResources,
                 AllowZeroPeKind = ZeroPeKind,
                 Parallel = Parallel,
                 PauseBeforeExit = PauseBeforeExit,
-                OutputFile = _outputFile,
+                OutputFile = outputFile,
                 AllowWildCards = Wildcards
             };
-            _ilMerger = new ILRepacking.ILRepack(_repackOptions);
 
-            // Attempt to create output directory if it does not exist.
+            ilMerger = new ILRepack(repackOptions);
+
+            // attempt to create output directory if it does not exist
             var outputPath = Path.GetDirectoryName(OutputFile);
-            if (outputPath != null && !Directory.Exists(outputPath))
+            if (outputPath != null && Directory.Exists(outputPath) == false)
             {
                 try
                 {
@@ -260,19 +259,18 @@ namespace Cogito.VisualBasic6.MSBuild
                 }
             }
 
-            // Assemblies to be merged.
-            var assemblies = new string[_assemblies.Length];
-            for (int i = 0; i < _assemblies.Length; i++)
+            // assemblies to be merged
+            var assemblies = new string[this.assemblies.Length];
+            for (var i = 0; i < this.assemblies.Length; i++)
             {
-                assemblies[i] = _assemblies[i].ItemSpec;
+                assemblies[i] = this.assemblies[i].ItemSpec;
+
                 if (string.IsNullOrEmpty(assemblies[i]))
-                {
-                    throw new Exception(string.Format("Invalid assembly path on item index {0}", i));
-                }
+                    throw new Exception($"Invalid assembly path on item index {i}");
+
                 if (!File.Exists(assemblies[i]) && !File.Exists(BuildPath(assemblies[i])))
-                {
-                    throw new Exception(string.Format("Unable to resolve assembly '{0}'", assemblies[i]));
-                }
+                    throw new Exception($"Unable to resolve assembly '{assemblies[i]}'");
+
                 Log.LogMessage(MessageImportance.High, "Added assembly '{0}'", assemblies[i]);
             }
 
@@ -282,42 +280,39 @@ namespace Cogito.VisualBasic6.MSBuild
                 var internalizeExclude = new string[InternalizeExclude.Length];
                 if (Internalize)
                 {
-                    for (int i = 0; i < InternalizeExclude.Length; i++)
+                    for (var i = 0; i < InternalizeExclude.Length; i++)
                     {
                         internalizeExclude[i] = InternalizeExclude[i].ItemSpec;
                         if (string.IsNullOrEmpty(internalizeExclude[i]))
                         {
-                            throw new Exception(string.Format("Invalid internalize exclude pattern at item index {0}. Pattern cannot be blank.", i));
+                            throw new Exception($"Invalid internalize exclude pattern at item index {i}. Pattern cannot be blank.");
                         }
-                        Log.LogMessage(MessageImportance.High,
-                            "Excluding namespaces/types matching pattern '{0}' from being internalized", internalizeExclude[i]);
+                        Log.LogMessage(MessageImportance.High, "Excluding namespaces/types matching pattern '{0}' from being internalized", internalizeExclude[i]);
                     }
 
                     // Create a temporary file with a list of assemblies that should not be internalized.
-                    _excludeFileTmpPath = Path.GetTempFileName();
-                    File.WriteAllLines(_excludeFileTmpPath, internalizeExclude);
-                    _repackOptions.ExcludeFile = _excludeFileTmpPath;
+                    excludeFileTmpPath = Path.GetTempFileName();
+                    File.WriteAllLines(excludeFileTmpPath, internalizeExclude);
+                    repackOptions.ExcludeFile = excludeFileTmpPath;
                 }
             }
 
-            _repackOptions.InputAssemblies = assemblies;
+            repackOptions.InputAssemblies = assemblies;
 
             // Path that will be used when searching for assemblies to merge.
             var searchPath = new List<string> { "." };
             searchPath.AddRange(LibraryPath.Select(iti => BuildPath(iti.ItemSpec)));
-            _repackOptions.SearchDirectories = searchPath.ToArray();
+            repackOptions.SearchDirectories = searchPath.ToArray();
 
             // Attempt to merge assemblies.
             try
             {
-                Log.LogMessage(MessageImportance.High, "Merging {0} assemb{1} to '{2}'",
-                    _assemblies.Length, _assemblies.Length != 1 ? "ies" : "y", _outputFile);
+                Log.LogMessage(MessageImportance.High, "Merging {0} assemb{1} to '{2}'", this.assemblies.Length, this.assemblies.Length != 1 ? "ies" : "y", outputFile);
 
                 // Measure performance
-                Stopwatch stopWatch = new Stopwatch();
+                var stopWatch = new Stopwatch();
                 stopWatch.Start();
-
-                _ilMerger.Repack();
+                ilMerger.Repack();
                 stopWatch.Stop();
 
                 Log.LogMessage(MessageImportance.High, "Merge succeeded in {0} s", stopWatch.Elapsed.TotalSeconds);
@@ -354,11 +349,8 @@ namespace Cogito.VisualBasic6.MSBuild
 
         public void Dispose()
         {
-            // Remove temporary exclude file
-            if (File.Exists(_excludeFileTmpPath))
-            {
-                File.Delete(_excludeFileTmpPath);
-            }
+            if (File.Exists(excludeFileTmpPath))
+                File.Delete(excludeFileTmpPath);
         }
 
     }

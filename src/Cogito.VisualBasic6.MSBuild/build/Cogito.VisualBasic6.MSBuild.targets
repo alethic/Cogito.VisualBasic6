@@ -1,8 +1,8 @@
 <Project>
 
     <PropertyGroup>
-        <VB6ProjectFile Condition="'$(VB6ProjectFile)' == ''">$(ProjectName).vbp</VB6ProjectFile>
         <VB6Name Condition="'$(VB6Name)' == ''">VB6.$(ProjectName)</VB6Name>
+        <VB6Type Condition="'$(VB6Type)' == ''">OleDll</VB6Type>
         <VB6ExeName Condition="'$(VB6ExeName)' == ''">$(VB6Name).dll</VB6ExeName>
         <VB6PdbName Condition="'$(VB6PdbName)' == ''">$(VB6Name).pdb</VB6PdbName>
         <VB6Version Condition="'$(VB6Version)' == '' and '$(AssemblyVersion)' != ''">$(AssemblyVersion)</VB6Version>
@@ -13,8 +13,6 @@
     <PropertyGroup>
         <VB6IntermediateOutputPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)'))</VB6IntermediateOutputPath>
         <VB6TargetName>$([System.IO.Path]::GetFileNameWithoutExtension('$(VB6ExeName)'))</VB6TargetName>
-        <VB6ProjectFileSource>$(VB6ProjectFile)</VB6ProjectFileSource>
-        <VB6ProjectFileTarget>$(VB6IntermediateOutputPath)$(VB6Name).vbp</VB6ProjectFileTarget>
         <VB6IntermediateTargetPath>$(VB6IntermediateOutputPath)$(VB6ExeName)</VB6IntermediateTargetPath>
         <VB6IntermediateSymbolPath>$(VB6IntermediateOutputPath)$(VB6PdbName)</VB6IntermediateSymbolPath>
     </PropertyGroup>
@@ -52,11 +50,14 @@
     <Target
         Name="SetVB6Properties">
         <Error
-            Condition="'$(VB6ProjectFile)' == ''"
-            Text="Required property VB6ProjectFile not found."/>
-        <Error
             Condition="'$(VB6Name)' == ''"
             Text="Required property VB6Name not found."/>
+        <Error
+            Condition="'$(VB6Type)' == ''"
+            Text="Required property VB6Type not found."/>
+        <Error
+            Condition="'$(VB6Type)' != 'OleDll'"
+            Text="Unsupporrted VB6Type '$(VB6Type)' found."/>
         <Error
             Condition="'$(VB6ExeName)' == ''"
             Text="Required property VB6ExeName not found."/>
@@ -85,15 +86,15 @@
     <Target
         Name="ResolveVB6TypeLibItems"
         DependsOnTargets="
-              BeforeResolveReferences;
-              AssignProjectConfiguration;
-              ResolveProjectReferences;
-              FindInvalidProjectReferences;
-              ResolveNativeReferences;
-              ResolveAssemblyReferences;
-              GenerateBindingRedirects;
-              ResolveComReferences;
-              ResolveVB6ProjectReferences;">
+            BeforeResolveReferences;
+            AssignProjectConfiguration;
+            ResolveProjectReferences;
+            FindInvalidProjectReferences;
+            ResolveNativeReferences;
+            ResolveAssemblyReferences;
+            GenerateBindingRedirects;
+            ResolveComReferences;
+            ResolveVB6ProjectReferences;">
 
         <ItemGroup>
             <COMOtherReference
@@ -152,8 +153,6 @@
         <Delete Files="$(VB6IntermediateTargetPath).BuildComplete" />
         <Delete Files="$(VB6IntermediateSymbolPath)" />
         <Delete Files="$(IntermediateOutputPath)Interop.$(VB6Name).dll" />
-        <Delete Files="$(VB6ProjectFileTarget)" />
-        <Delete Files="$(VB6LogFile)" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).TLB" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
         <Delete Files="$(VB6IntermediateOutputPath)$(VB6TargetName).pdb" />
@@ -165,7 +164,7 @@
     <Target
         Name="BuildVB6Project"
         Inputs="
-            $(VB6ProjectFileSource);
+            $(VB6ProjectFile);
             @(VB6Module);
             @(VB6Class);
             @(VB6Form);
@@ -192,16 +191,14 @@
         Name="BuildVB6ProjectCore"
         DependsOnTargets="ResolveVB6TypeLibItems">
 
+        <!-- Make sure Visual Basic 6 is installed and available. -->
         <MakeDir
             Directories="$(VB6OutputPath)"
             Condition="!Exists('$(VB6OutputPath)')" />
 
         <Message
-            Text="Building $(VB6ProjectFileTarget) from $(VB6ProjectFileSource)." />
-
-        <Error
-            Text="Missing Visual Basic 6 project source file: $(VB6ProjectFileSource)"
-            Condition="!Exists('$(VB6ProjectFileSource)')"/>
+            Text="Building Visual Basic 6 project..."
+            Importance="high" />
 
         <ItemGroup>
             <VB6AdditionalProperties Include="Name" Condition="'$(VB6Name)' != ''">
@@ -255,16 +252,26 @@
 
         <!-- Stage FileWrites early so clean gets to them even after fail. -->
         <ItemGroup>
-            <FileWrites Include="$(VB6LogFile)" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).TLB" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).exp" />
             <FileWrites Include="$(VB6IntermediateOutputPath)$(VB6TargetName).lib" />
         </ItemGroup>
 
+        <ConvertToAbsolutePath Paths="$(VB6ProjectFile)" Condition="'$(VB6ProjectFile)' != ''">
+            <Output TaskParameter="AbsolutePaths" PropertyName="VB6ProjectFilePath" />
+        </ConvertToAbsolutePath>
+
+        <PropertyGroup>
+            <_VB6PreserveTemporary Condition="'$(VB6Debug)' == 'true'">true</_VB6PreserveTemporary>
+        </PropertyGroup>
+
         <VB6C
             ToolPath="$(VB6Path)"
-            Source="$([System.IO.Path]::GetFullPath('$(VB6ProjectFileSource)'))"
+            PreserveTemporary="$(_VB6PreserveTemporary)"
+            Type="$(VB6Type)"
+            Startup="$(VB6Startup)"
+            Source="$(VB6ProjectFilePath)"
             References="@(TypeLibItems)"
             Modules="@(VB6Module)"
             Classes="@(VB6Class)"
@@ -345,16 +352,28 @@
         Name="MergeVB6InteropAssembly"
         DependsOnTargets="BuildVB6Project">
 
-        <Delete Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
-        <Delete Files="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)$(TargetName).pdb')" />
+        <Delete
+            Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll"
+            Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
+        <Delete
+            Files="$(IntermediateOutputPath)ilrepack\$(TargetName).pdb"
+            Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).pdb')" />
 
-        <VB6ILRepack Union="true" XmlDocumentation="true" CopyAttributes="true" LibraryPath="@(ReferencePath->'%(RootDir)%(Directory)')" InputAssemblies="@(IntermediateAssembly);$(IntermediateOutputPath)Interop.$(VB6Name).dll" OutputFile="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" />
-        <Error Text="ILRepack failed to produce output." Condition="!Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
+        <VB6ILRepack
+            Union="true"
+            XmlDocumentation="true"
+            CopyAttributes="true"
+            DebugInfo="$(DebugSymbols)"
+            LibraryPath="@(ReferencePath->'%(RootDir)%(Directory)')"
+            InputAssemblies="@(IntermediateAssembly);$(IntermediateOutputPath)Interop.$(VB6Name).dll"
+            OutputFile="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" />
+
+        <Error
+            Text="ILRepack failed to produce output."
+            Condition="!Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
 
         <Copy SourceFiles="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" DestinationFiles="@(IntermediateAssembly)" />
         <Copy SourceFiles="$(IntermediateOutputPath)ilrepack\$(TargetName).pdb" DestinationFiles="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).pdb')" />
-        <Delete Files="$(IntermediateOutputPath)ilrepack\$(TargetName).dll" Condition="Exists('$(IntermediateOutputPath)ilrepack\$(TargetName).dll')" />
-        <Delete Files="$(IntermediateOutputPath)$(TargetName).pdb" Condition="Exists('$(IntermediateOutputPath)$(TargetName).pdb')" />
         <RemoveDir Directories="$(IntermediateOutputPath)ilrepack" />
 
         <ItemGroup>
@@ -365,7 +384,9 @@
 
     <Target
         Name="BuildVB6Manifest"
-        DependsOnTargets="BuildVB6ProjectCore;ConfigureCOMVariables">
+        DependsOnTargets="BuildVB6ProjectCore;ConfigureCOMVariables"
+        Inputs="$(VB6IntermediateTargetPath);$(VB6IntermediateOutputPath)$(VB6TargetName).tlb;$(VB6IntermediateOutputPath)$(VB6TargetName).VBR"
+        Outputs="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest">
 
         <ItemGroup>
             <_GetFileVersionInfoItems Include="$(VB6IntermediateTargetPath)" />
@@ -382,10 +403,10 @@
             ComponentFileName="$(VB6ExeName)"
             AssemblyIdentity="$(VB6TargetName),type=win32,processorArchitecture=x86,version=%(VB6FileVersionInfo.ProductVersion)"
             TypeLibraryFile="$(VB6IntermediateOutputPath)$(VB6TargetName).tlb"
-            OutputManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest" />
+            OutputManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp" />
 
         <PatchVB6Manifest
-            ManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
+            ManifestFile="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
             VBRegFile="$(VB6IntermediateOutputPath)$(VB6TargetName).VBR" />
 
         <ResolveAssemblyManifestMetadata
@@ -397,9 +418,16 @@
         </ItemGroup>
 
         <UpdateAssemblyManifest
-            ManifestSource="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
-            ManifestOutput="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest"
+            ManifestSource="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
+            ManifestOutput="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
             Dependencies="@(_ResolvedAssemblyDependencies)" />
+
+        <Copy
+            SourceFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp"
+            DestinationFiles="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest" />
+
+        <Delete
+            Files="$(VB6IntermediateOutputPath)$(VB6TargetName).manifest.tmp" />
     </Target>
 
     <Target
@@ -432,77 +460,5 @@
             </ContentWithTargetPath>
         </ItemGroup>
     </Target>
-
-    <UsingTask
-        TaskName="PatchVB6Manifest"
-        TaskFactory="CodeTaskFactory"
-        AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-        <ParameterGroup>
-            <ManifestFile ParameterType="System.String" Required="true" />
-            <VBRegFile ParameterType="System.String" Required="true" />
-        </ParameterGroup>
-        <Task>
-            <Reference Include="System.Xml" />
-            <Reference Include="System.Xml.Linq" />
-            <Using Namespace="System" />
-            <Using Namespace="System.IO" />
-            <Using Namespace="System.Xml" />
-            <Using Namespace="System.Xml.Linq" />
-            <Code Type="Fragment" Language="cs">
-                <![CDATA[
-                    var asm = (XNamespace)"urn:schemas-microsoft-com:asm.v1";
-
-                    // load existing manifest file
-                    var xml = XDocument.Load(ManifestFile);
-
-                    //xml.Root.Elements(asm + "assemblyIdentity").Attributes("processorArchitecture").Remove();
-
-                    // parse VB registration file
-                    var reg = File.ReadAllLines(VBRegFile)
-                        .Select(i => i.Split(new [] { " = " }, StringSplitOptions.RemoveEmptyEntries))
-                        .Where(i => i.Length == 2)
-                        .ToDictionary(i => i[0], i => i[1]);
-
-                    foreach (var comClass in xml.Descendants(asm + "comClass"))
-                    {
-                        var clsid = (string)comClass.Attribute("clsid");
-                        if (clsid == null)
-                            continue;
-                            
-                        var key = @"HKEY_CLASSES_ROOT\CLSID\" + clsid + @"\ProgID";
-                        var progid = "";
-                        if (reg.TryGetValue(key, out progid))
-                            comClass.SetAttributeValue("progid", progid);
-
-                        comClass.SetAttributeValue("threadingModel", "Apartment");
-                    }
-                    
-                    xml.Save(ManifestFile);
-                ]]>
-            </Code>
-        </Task>
-    </UsingTask>
-
-    <UsingTask
-        TaskName="GetFileVersionInfo"
-        TaskFactory="CodeTaskFactory"
-        AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-        <ParameterGroup>
-            <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
-        </ParameterGroup>
-        <Task>
-            <Using Namespace="System" />
-            <Using Namespace="System.Diagnostics" />
-            <Code Type="Fragment" Language="cs">
-                <![CDATA[
-                    foreach (var f in Files)
-                    {
-                        var v = FileVersionInfo.GetVersionInfo(f.ItemSpec);
-                        f.SetMetadata("ProductVersion", v.ProductVersion);
-                    }
-                ]]>
-            </Code>
-        </Task>
-    </UsingTask>
 
 </Project>

@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Cogito.VisualBasic6.VB6C;
 using Cogito.VisualBasic6.VB6C.Project;
 
@@ -18,6 +19,8 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         Microsoft.Build.Utilities.Task
     {
 
+        VB6Type type;
+
         /// <summary>
         /// Path to the VB6 executable.
         /// </summary>
@@ -28,6 +31,21 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         /// Source VBP project file to use as a base.
         /// </summary>
         public string Source { get; set; }
+
+        /// <summary>
+        /// Type of the project.
+        /// </summary>
+        [Required]
+        public string Type
+        {
+            get => Enum.GetName(typeof(VB6Type), type);
+            set => type = (VB6Type)Enum.Parse(typeof(VB6Type), value);
+        }
+
+        /// <summary>
+        /// Type of startup.
+        /// </summary>
+        public string Startup { get; set; }
 
         /// <summary>
         /// References to include in the VBP.
@@ -61,12 +79,20 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         public string Output { get; set; }
 
         /// <summary>
+        /// Whether temporary files should be preserved.
+        /// </summary>
+        public bool PreserveTemporary { get; set; }
+
+        /// <summary>
         /// Applies the transforms.
         /// </summary>
         /// <param name="project"></param>
         /// <returns></returns>
         void Apply(VB6Project project)
         {
+            project.Type = type;
+            project.Startup = Startup;
+
             if (References != null &&
                 References.Length > 0)
             {
@@ -131,7 +157,7 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
             }
 
             // convert to int
-            if (int.TryParse(value, out var intValue))
+            if (int.TryParse(value, out _))
                 return typeof(int);
 
             // default to string
@@ -280,21 +306,53 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         {
             // setup VB6 project
             var log = new StringWriter();
-            var src = Source != null ? VB6Project.Load(Source) : new VB6Project();
-            Apply(src);
+            var source = Source != null ? VB6Project.Load(Source) : new VB6Project();
+            Apply(source);
 
-            using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
-                Task.Run(() =>
-                    new Compiler().Compile(
-                        new FileInfo(ToolPath),
-                        src,
-                        new DirectoryInfo(Output),
-                        log))
-                    .Wait();
+            // output to random directory to prevent it from deleting contents of original
+            var dst = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-            // return output
-            Log.LogMessagesFromStream(new StringReader(log.ToString()), MessageImportance.Normal);
-            return true;
+            try
+            {
+                Directory.CreateDirectory(dst);
+
+                using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
+                {
+                    var compiler = new Compiler(ToolPath)
+                    {
+                        PreserveTemporary = PreserveTemporary
+                    };
+
+                    if (compiler.Compile(source, Output, out var errors) == false)
+                    {
+                        foreach (var error in errors)
+                            Log.LogError(error);
+
+                        return false;
+                    }
+
+                    // copy temporary directory to final
+                    foreach (var f in Directory.GetFiles(dst))
+                        File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
+                }
+
+                // return output
+                Log.LogMessagesFromStream(new StringReader(log.ToString()), MessageImportance.Normal);
+                return true;
+            }
+            finally
+            {
+                try
+                {
+                    if (PreserveTemporary == false)
+                        if (Directory.Exists(dst))
+                            Directory.Delete(dst, true);
+                }
+                catch
+                {
+
+                }
+            }
         }
 
     }

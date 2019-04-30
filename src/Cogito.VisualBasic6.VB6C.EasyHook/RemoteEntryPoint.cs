@@ -14,6 +14,7 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
     public class RemoteEntryPoint : IEntryPoint
     {
 
+        public const string KERNEL32_DLL = "kernel32.dll";
         public const string USER32_DLL = "user32.dll";
         public const string ADVAPI32_DLL = "advapi32.dll";
         public const string OLE32_DLL = "ole32.dll";
@@ -186,6 +187,17 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         bool MessageBeepHook(uint beepType)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Traps the process exit code.
+        /// </summary>
+        /// <param name="exitCode"></param>
+        /// <returns></returns>
+        void ExitProcessHook(uint exitCode)
+        {
+            executor.ExitProcess(exitCode);
+            ExitProcess(exitCode);
         }
 
     }

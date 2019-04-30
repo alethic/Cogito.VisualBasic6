@@ -23,12 +23,26 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
 
         }
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args).WithParsed(Run);
+            try
+            {
+                int r = 0;
+                Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
+                {
+                    r = Run(o);
+                });
+
+                return r;
+            }
+            catch (Exception e)
+            {
+                Console.Error.Write(e.ToString());
+                return 1;
+            }
         }
 
-        static void Run(Options options)
+        static int Run(Options options)
         {
             var e = new Executor()
             {
@@ -37,8 +51,7 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
                 Out = options.Out.Trim().Trim('"').Trim(),
             };
 
-            using (var stderr = Console.OpenStandardError())
-                e.Execute(new StreamWriter(stderr));
+            return e.Execute(Console.Error);
         }
 
     }
