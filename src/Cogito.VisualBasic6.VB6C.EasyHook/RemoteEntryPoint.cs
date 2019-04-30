@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -29,17 +30,45 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         [DllImport(OLE32_DLL, CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         static extern int CoInitializeEx([In, Optional] IntPtr pvReserved, [In] uint dwCoInit);
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto)]
+        delegate void DCoUninitialize();
+
+        [DllImport(OLE32_DLL, CharSet = CharSet.Auto, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+        static extern void CoUninitialize();
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate void DExitProcess(uint uExitCode);
+
+        [DllImport(KERNEL32_DLL, CallingConvention = CallingConvention.StdCall)]
+        static extern int ExitProcess(uint uExitCode);
+
         readonly RemoteExecutor executor;
+        readonly IntPtr hActCtx;
+
+        [ThreadStatic]
+        static IntPtr lpCookie;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="channelName"></param>
-        public RemoteEntryPoint(RemoteHooking.IContext context, string channelName)
+        public RemoteEntryPoint(RemoteHooking.IContext context, string channelName, string manifest)
         {
             executor = RemoteHooking.IpcConnectClient<RemoteExecutor>(channelName);
             executor.Ping();
+
+            if (manifest != null)
+            {
+                var actCtx = new ActCtx.ACTCTX();
+                actCtx.cbSize = Marshal.SizeOf(typeof(ActCtx.ACTCTX));
+                actCtx.dwFlags = ActCtx.ACTCTX_FLAG_SET_PROCESS_DEFAULT;
+                actCtx.lpSource = manifest;
+
+                hActCtx = ActCtx.CreateActCtx(ref actCtx);
+                if (hActCtx == new IntPtr(-1))
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to create activation context.");
+            }
         }
 
         /// <summary>
@@ -61,6 +90,18 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
                 this);
             coInitializeEx.ThreadACL.SetExclusiveACL(new[] { 0 });
 
+            var coUninitialize = LocalHook.Create(
+                LocalHook.GetProcAddress(OLE32_DLL, nameof(CoUninitialize)),
+                new DCoUninitialize(CoUninitializeHook),
+                this);
+            coUninitialize.ThreadACL.SetExclusiveACL(new[] { 0 });
+
+            var exitProcess = LocalHook.Create(
+                LocalHook.GetProcAddress(KERNEL32_DLL, nameof(ExitProcess)),
+                new DExitProcess(ExitProcessHook),
+                this);
+            exitProcess.ThreadACL.SetExclusiveACL(new[] { 0 });
+
             RemoteHooking.WakeUpProcess();
 
             try
@@ -78,9 +119,18 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
             }
 
             messageBeep.Dispose();
+            coInitializeEx.Dispose();
+            coUninitialize.Dispose();
+            exitProcess.Dispose();
             LocalHook.Release();
         }
 
+        /// <summary>
+        /// Invoked when COM is initialized on a thread.
+        /// </summary>
+        /// <param name="pvReserved"></param>
+        /// <param name="dwCoInit"></param>
+        /// <returns></returns>
         int CoInitializeExHook(IntPtr pvReserved, uint dwCoInit)
         {
             var hr = CoInitializeEx(pvReserved, dwCoInit);
@@ -93,7 +143,39 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         /// </summary>
         void ActivateComCtx()
         {
-            executor.WriteStdErr("Activating new COM ctx...\n");
+            if (hActCtx != IntPtr.Zero)
+            {
+                executor.WriteStdOut("Activating new COM ctx...\n");
+
+                if (ActCtx.ActivateActCtx(hActCtx, out lpCookie) != true)
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to activate activation context.");
+            }
+        }
+
+        /// <summary>
+        /// Invoked when COM is uninitialized on a thread.
+        /// </summary>
+        /// <returns></returns>
+        void CoUninitializeHook()
+        {
+            DeactivateComCtx();
+            CoUninitialize();
+        }
+
+        /// <summary>
+        /// Deactivates the COM context.
+        /// </summary>
+        void DeactivateComCtx()
+        {
+            if (lpCookie != IntPtr.Zero)
+            {
+                executor.WriteStdOut("Deactivating COM ctx...\n");
+
+                if (ActCtx.DeactivateActCtx(0, lpCookie) != true)
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to deactivate activation context.");
+
+                lpCookie = IntPtr.Zero;
+            }
         }
 
         /// <summary>

@@ -37,6 +37,11 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
         public string Out { get; set; }
 
         /// <summary>
+        /// Path to the COM application manifest.
+        /// </summary>
+        public string Ctx { get; set; }
+
+        /// <summary>
         /// Additional defines.
         /// </summary>
         public Dictionary<string, string> Def { get; set; }
@@ -117,7 +122,8 @@ namespace Cogito.VisualBasic6.VB6C.EasyHook
                 typeof(RemoteEntryPoint).Assembly.Location,
                 typeof(RemoteEntryPoint).Assembly.Location,
                 out var pid,
-                channelName);
+                channelName,
+                Ctx);
 
             // wait for exit of process
             var prc = Process.GetProcessById(pid);

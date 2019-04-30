@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
+
 using Cogito.VisualBasic6.VB6C.Project;
+
 using CommandLine;
 
 namespace Cogito.VisualBasic6.VB6C
@@ -30,6 +30,9 @@ namespace Cogito.VisualBasic6.VB6C
 
             [Option('p', "properties", Separator = ':', HelpText = "Colon separated list of additional name=value pairs to be defined.")]
             public IEnumerable<string> Properties { get; set; }
+
+            [Option('m', "manifest", HelpText = "Path to the COM application manifest.")]
+            public string Manifest { get; set; }
 
             [Value(0, HelpText = "Input files to be bult.")]
             public string Input { get; set; }
