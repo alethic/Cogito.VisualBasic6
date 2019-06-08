@@ -1,8 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
   <Import Project="..\..\Cogito.VisualBasic6.MSBuild\build\Cogito.VisualBasic6.MSBuild.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <VB6TaskAssembly>..\bin\Debug\net47\Cogito.VisualBasic6.MSBuild.dll</VB6TaskAssembly>
     <VB6Name>VB6Sample</VB6Name>
     <VB6Type>OleDll</VB6Type>
@@ -21,5 +22,6 @@
     </PackageReference>
   </ItemGroup>
 
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="..\..\Cogito.VisualBasic6.MSBuild\build\Cogito.VisualBasic6.MSBuild.targets" />
 </Project>

@@ -37,11 +37,11 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.20">
-      <PrivateAssets>Runtime, Compile, Native, Analyzers</PrivateAssets>
-      <IncludeAssets>Build</IncludeAssets>
+    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.21">
+      <PrivateAssets>none</PrivateAssets>
+      <IncludeAssets>build</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ILRepack" Version="2.0.16">
+    <PackageReference Include="ILRepack" Version="2.0.17">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>

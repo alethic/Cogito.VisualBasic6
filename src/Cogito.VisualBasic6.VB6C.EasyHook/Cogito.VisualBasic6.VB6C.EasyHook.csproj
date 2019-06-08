@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.4.3" />
-    <PackageReference Include="EasyHook" Version="2.7.6789" />
+    <PackageReference Include="CommandLineParser" Version="2.5.0" />
+    <PackageReference Include="EasyHook" Version="2.7.7097" />
   </ItemGroup>
 
 </Project>

@@ -197,7 +197,7 @@
             Condition="!Exists('$(VB6OutputPath)')" />
 
         <Message
-            Text="Building Visual Basic 6 project..."
+            Text="Building Visual Basic 6 project to $(VB6IntermediateOutputPath)..."
             Importance="high" />
 
         <ItemGroup>
