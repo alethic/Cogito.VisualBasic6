@@ -408,57 +408,62 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         /// <returns></returns>
         byte[] HashVB6Project(VB6Project project)
         {
-            using (var stm = new MemoryStream())
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                using (var wrt = new StreamWriter(stm, Encoding.UTF8, 1024, true))
-                    project.Save(wrt);
+                hash.AppendData(BitConverter.GetBytes((int)project.Type));
 
-                stm.WriteByte(0x00);
+                hash.AppendData(BitConverter.GetBytes(project.References.Count));
 
-                foreach (var i in project.References)
+                foreach (var i in project.References.OrderBy(i => i.Guid))
                 {
+                    hash.AppendData(i.Guid.ToByteArray());
+                    hash.AppendData(BitConverter.GetBytes(i.Version.Major));
+                    hash.AppendData(BitConverter.GetBytes(i.Version.Minor));
+                    hash.AppendData(BitConverter.GetBytes(i.Version.Build));
+                    hash.AppendData(BitConverter.GetBytes(i.Version.Revision));
+                    hash.AppendData(BitConverter.GetBytes(i.LCID));
+
                     if (File.Exists(i.Location))
-                        using (var f = File.OpenRead(i.Location))
-                            f.CopyTo(stm);
-
-                    stm.WriteByte(0x00);
+                        hash.AppendData(File.ReadAllBytes(i.Location));
                 }
 
-                foreach (var i in project.Modules)
+                hash.AppendData(BitConverter.GetBytes(project.Modules.Count));
+
+                foreach (var i in project.Modules.OrderBy(i => i.Name))
+                {
+                    hash.AppendData(Encoding.UTF8.GetBytes(i.Name));
+
+                    if (File.Exists(i.File))
+                        hash.AppendData(File.ReadAllBytes(i.File));
+                }
+
+                hash.AppendData(BitConverter.GetBytes(project.Classes.Count));
+
+                foreach (var i in project.Classes.OrderBy(i => i.Name))
+                {
+                    hash.AppendData(Encoding.UTF8.GetBytes(i.Name));
+
+                    if (File.Exists(i.File))
+                        hash.AppendData(File.ReadAllBytes(i.File));
+                }
+
+                hash.AppendData(BitConverter.GetBytes(project.Forms.Count));
+
+                foreach (var i in project.Forms.OrderBy(i => i.File))
                 {
                     if (File.Exists(i.File))
-                        using (var f = File.OpenRead(i.File))
-                            f.CopyTo(stm);
-
-                    stm.WriteByte(0x00);
+                        hash.AppendData(File.ReadAllBytes(i.File));
                 }
 
-                foreach (var i in project.Classes)
-                {
-                    if (File.Exists(i.File))
-                        using (var f = File.OpenRead(i.File))
-                            f.CopyTo(stm);
-
-                    stm.WriteByte(0x00);
-                }
-
-                foreach (var i in project.Forms)
-                {
-                    if (File.Exists(i.File))
-                        using (var f = File.OpenRead(i.File))
-                            f.CopyTo(stm);
-
-                    stm.WriteByte(0x00);
-                }
-
-                stm.Flush();
-                stm.Position = 0;
-
-                using (var hash = new SHA1Managed())
-                    return hash.ComputeHash(stm);
+                return hash.GetHashAndReset();
             }
         }
 
+        /// <summary>
+        /// Returns a unique string representing the project.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <returns></returns>
         string HashVB6ProjectToString(VB6Project project)
         {
             return string.Join("", HashVB6Project(project).Select(i => i.ToString("x2")));
