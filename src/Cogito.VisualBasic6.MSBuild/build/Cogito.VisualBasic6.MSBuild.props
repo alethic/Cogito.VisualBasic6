@@ -7,6 +7,8 @@
         <VB6Path Condition="'$(VB6Path)' == ''">$([MSBuild]::NormalizePath('$(VB6ProductDir)\VB6.EXE'))</VB6Path>
         <VB6TaskAssembly Condition="'$(VB6TaskAssembly)' == ''">$(MSBuildThisFileDirectory)Cogito.VisualBasic6.MSBuild.dll</VB6TaskAssembly>
         <VB6TaskAssembly>$([System.IO.Path]::GetFullPath($(VB6TaskAssembly)))</VB6TaskAssembly>
+        <VB6OutputCacheUri>$([System.IO.Path]::GetTempPath())\vb6-cache</VB6OutputCacheUri>
+        <VB6OutputCacheProvider>file</VB6OutputCacheProvider>
     </PropertyGroup>
 
     <UsingTask

@@ -281,7 +281,9 @@
                 @(VB6AdditionalProperties->'%(Identity)=%(Value)', ';');
                 $(VB6Properties);
             "
-            Output="$(VB6IntermediateOutputPath)" />
+            Output="$(VB6IntermediateOutputPath)"
+            OutputCacheUri="$(VB6OutputCacheUri)"
+            OutputCacheProvider="$(VB6OutputCacheProvider)" />
     </Target>
 
     <Target

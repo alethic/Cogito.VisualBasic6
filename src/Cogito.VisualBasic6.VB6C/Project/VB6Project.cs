@@ -186,7 +186,7 @@ namespace Cogito.VisualBasic6.VB6C.Project
         /// Saves the project file to the given writer.
         /// </summary>
         /// <param name="path"></param>
-        void Save(TextWriter writer)
+        public void Save(TextWriter writer)
         {
             writer.WriteLine("Type={0}", Type);
 

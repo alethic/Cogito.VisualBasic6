@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Cogito.VisualBasic6.MSBuild\build\Cogito.VisualBasic6.MSBuild.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <VB6TaskAssembly>..\bin\Debug\net47\Cogito.VisualBasic6.MSBuild.dll</VB6TaskAssembly>
+    <VB6Name>VB6Sample</VB6Name>
+    <VB6Type>OleDll</VB6Type>
+    <EnableComExport>true</EnableComExport>
+    <VB6Debug>true</VB6Debug>
+  </PropertyGroup>
+
+  <Target Name="Build">
+    <Message Text="CacheUri: $(VB6OutputCacheUri)" Importance="high" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Cogito.COM.MSBuild" Version="0.1.21">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Import Project="..\..\Cogito.VisualBasic6.MSBuild\build\Cogito.VisualBasic6.MSBuild.targets" />
+</Project>

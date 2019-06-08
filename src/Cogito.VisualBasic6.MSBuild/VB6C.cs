@@ -84,6 +84,16 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
         public bool PreserveTemporary { get; set; }
 
         /// <summary>
+        /// URI to an output cache.
+        /// </summary>
+        public string OutputCacheUri { get; set; }
+
+        /// <summary>
+        /// Provider name of the output cache.
+        /// </summary>
+        public string OutputCacheProvider { get; set; } = "file";
+
+        /// <summary>
         /// Applies the transforms.
         /// </summary>
         /// <param name="project"></param>
@@ -318,22 +328,27 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
 
                 using (var mutex = new Mutex(true, new Guid(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(Output))).ToString("n")))
                 {
-                    var compiler = new Compiler(ToolPath)
+                    if (GetOutputCache(source, dst) == false)
                     {
-                        PreserveTemporary = PreserveTemporary
-                    };
+                        var compiler = new Compiler(ToolPath)
+                        {
+                            PreserveTemporary = PreserveTemporary
+                        };
 
-                    if (compiler.Compile(source, Output, out var errors) == false)
-                    {
-                        foreach (var error in errors)
-                            Log.LogError(error);
+                        if (compiler.Compile(source, dst, out var errors) == false)
+                        {
+                            foreach (var error in errors)
+                                Log.LogError(error);
 
-                        return false;
+                            return false;
+                        }
+
+                        // attempt to store the output into a cache
+                        StoreOutputCache(source, dst);
                     }
 
                     // copy temporary directory to final
-                    foreach (var f in Directory.GetFiles(dst))
-                        File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
+                    DirectoryCopy(dst, Output);
                 }
 
                 // return output
@@ -353,6 +368,172 @@ namespace Cogito.VisualBasic6.MSBuild.Tasks
 
                 }
             }
+        }
+
+        /// <summary>
+        /// Attempts to retrieve the compiler output from the specified cache provider.
+        /// </summary>
+        /// <returns></returns>
+        bool GetOutputCache(VB6Project source, string output)
+        {
+            if (OutputCacheProvider == null)
+                return false;
+
+            switch (OutputCacheProvider)
+            {
+                case "file":
+                    return GetFileOutputCache(source, output);
+                default:
+                    return false;
+            }
+        }
+
+        void StoreOutputCache(VB6Project source, string output)
+        {
+            if (OutputCacheProvider == null)
+                return;
+
+            switch (OutputCacheProvider)
+            {
+                case "file":
+                    StoreFileOutputCache(source, output);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Returns a unique hash value for the specified VB6 project.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <returns></returns>
+        byte[] HashVB6Project(VB6Project project)
+        {
+            using (var stm = new MemoryStream())
+            {
+                using (var wrt = new StreamWriter(stm, Encoding.UTF8, 1024, true))
+                    project.Save(wrt);
+
+                stm.WriteByte(0x00);
+
+                foreach (var i in project.References)
+                {
+                    if (File.Exists(i.Location))
+                        using (var f = File.OpenRead(i.Location))
+                            f.CopyTo(stm);
+
+                    stm.WriteByte(0x00);
+                }
+
+                foreach (var i in project.Modules)
+                {
+                    if (File.Exists(i.File))
+                        using (var f = File.OpenRead(i.File))
+                            f.CopyTo(stm);
+
+                    stm.WriteByte(0x00);
+                }
+
+                foreach (var i in project.Classes)
+                {
+                    if (File.Exists(i.File))
+                        using (var f = File.OpenRead(i.File))
+                            f.CopyTo(stm);
+
+                    stm.WriteByte(0x00);
+                }
+
+                foreach (var i in project.Forms)
+                {
+                    if (File.Exists(i.File))
+                        using (var f = File.OpenRead(i.File))
+                            f.CopyTo(stm);
+
+                    stm.WriteByte(0x00);
+                }
+
+                stm.Flush();
+                stm.Position = 0;
+
+                using (var hash = new SHA1Managed())
+                    return hash.ComputeHash(stm);
+            }
+        }
+
+        string HashVB6ProjectToString(VB6Project project)
+        {
+            return string.Join("", HashVB6Project(project).Select(i => i.ToString("x2")));
+        }
+
+        /// <summary>
+        /// Attempts to retrieve the VB6 project output from the output cache.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <param name="output"></param>
+        /// <returns></returns>
+        bool GetFileOutputCache(VB6Project project, string output)
+        {
+            if (!Uri.TryCreate(OutputCacheUri, UriKind.Absolute, out var uri) || uri.Scheme != "file")
+                throw new InvalidOperationException($"Bad file cache URI: {OutputCacheUri}.");
+
+            Log.LogMessage(MessageImportance.High, "Retrieving VB6 output from file cache: {0}", uri);
+
+            var hash = HashVB6ProjectToString(project);
+            var path = Path.Combine(uri.LocalPath, hash);
+            if (Directory.Exists(path))
+            {
+                DirectoryCopy(path, output);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to store the VB6 project output into the file cache.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <param name="source"></param>
+        void StoreFileOutputCache(VB6Project project, string source)
+        {
+            if (!Uri.TryCreate(OutputCacheUri, UriKind.Absolute, out var uri) || uri.Scheme != "file")
+                throw new InvalidOperationException($"Bad file cache URI: {OutputCacheUri}.");
+
+            Log.LogMessage(MessageImportance.High, "Storing VB6 output to file cache: {0}", uri);
+
+            var hash = HashVB6ProjectToString(project);
+            var path = Path.Combine(uri.LocalPath, hash);
+            if (Directory.Exists(path) == false)
+                Directory.CreateDirectory(path);
+
+            DirectoryCopy(source, path);
+        }
+
+        /// <summary>
+        /// Copies the contents of one directory to another.
+        /// </summary>
+        /// <param name="sourceDirName"></param>
+        /// <param name="destDirName"></param>
+        /// <param name="copySubDirs"></param>
+        static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
+        {
+            if (sourceDirName == null)
+                throw new ArgumentNullException(nameof(sourceDirName));
+            if (destDirName == null)
+                throw new ArgumentNullException(nameof(destDirName));
+
+            var dir = new DirectoryInfo(sourceDirName);
+            if (dir.Exists == false)
+                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDirName}");
+
+            if (Directory.Exists(destDirName) == false)
+                Directory.CreateDirectory(destDirName);
+
+            foreach (var file in dir.GetFiles())
+                file.CopyTo(Path.Combine(destDirName, file.Name), true);
+
+            if (copySubDirs)
+                foreach (var subdir in dir.GetDirectories())
+                    DirectoryCopy(subdir.FullName, Path.Combine(destDirName, subdir.Name), copySubDirs);
         }
 
     }
